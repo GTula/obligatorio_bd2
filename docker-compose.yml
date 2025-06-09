@@ -8,12 +8,13 @@ services:
     environment:
       DB_HOST: host.docker.internal  # Esto conecta con tu base local
       DB_USER: root
-      DB_PASSWORD: tu_clave
-      DB_NAME: votacion_db
+      DB_PASSWORD: 1117
+      DB_NAME: obligatorio
+      FLASK_APP: app.py
     depends_on: []
 
   frontend:
-    build: ./frontend
+    build: ./frontend/frontend
     ports:
       - "3000:80"
     depends_on:
