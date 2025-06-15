@@ -6,8 +6,11 @@ import HomeMesa from './pages/HomeMesa';
 import LoginVotante from './pages/LoginVotante';
 import PantallaVotacion from './pages/PantallaVotacion';
 import Login from './pages/Login';
+import VotantesMesa from './pages/VotantesMesa';
+import Resultados from './pages/Resultados';
 
-// Exportá los contextos para usarlos en otros componentes
+import { MesaProvider } from './context/MesaContext'; // <- este es tu nuevo contexto
+
 export const mesaAuthContext = createContext();
 export const votanteAuthContext = createContext();
 
@@ -18,19 +21,27 @@ function App() {
   return (
     <mesaAuthContext.Provider value={[isMesaAuthenticated, setMesaAuthenticated]}>
       <votanteAuthContext.Provider value={[isVotanteAuthenticated, setVotanteAuthenticated]}>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/login-mesa" element={<LoginMesa />} />
-            <Route path="/mesa" element={
-              isMesaAuthenticated ? <HomeMesa /> : <Navigate to="/login-mesa" />
-            } />
-            <Route path="/login-votante" element={<LoginVotante />} />
-            <Route path="/votar" element={
-              isVotanteAuthenticated ? <PantallaVotacion /> : <Navigate to="/login-votante" />
-            } />
-          </Routes>
-        </BrowserRouter>
+        <MesaProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/login-mesa" element={<LoginMesa />} />
+              <Route path="/mesa" element={
+                isMesaAuthenticated ? <HomeMesa /> : <Navigate to="/login-mesa" />
+              } />
+              <Route path="/login-votante" element={<LoginVotante />} />
+              <Route path="/votar" element={
+                isVotanteAuthenticated ? <PantallaVotacion /> : <Navigate to="/login-votante" />
+              } />
+              <Route path="/votantes" element={
+                isMesaAuthenticated ? <VotantesMesa /> : <Navigate to="/login-mesa" />
+              } />
+              <Route path="/resultados" element={
+                isMesaAuthenticated ? <Resultados /> : <Navigate to="/login-mesa" />
+              } />
+            </Routes>
+          </BrowserRouter>
+        </MesaProvider>
       </votanteAuthContext.Provider>
     </mesaAuthContext.Provider>
   );

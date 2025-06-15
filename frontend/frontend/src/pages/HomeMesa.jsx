@@ -1,11 +1,21 @@
+// HomeMesa.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Mesa.css';
+import { useMesa } from '../context/MesaContext';
 
 function HomeMesa() {
   const [modalOpen, setModalOpen] = useState(false);
   const [accion, setAccion] = useState('');
-  const [estadoMesa, setEstadoMesa] = useState('cerrada');
-  const [mesaCerradaConfirmada, setMesaCerradaConfirmada] = useState(false);
+  const navigate = useNavigate();
+  const {
+    mesaAbierta,
+    mesaCerrada,
+    abrirMesa,
+    cerrarMesa,
+    puedeVerVotantes,
+    puedeVerResultados,
+  } = useMesa();
 
   const abrirModal = (tipo) => {
     setAccion(tipo);
@@ -17,13 +27,8 @@ function HomeMesa() {
   };
 
   const confirmarAccion = () => {
-    if (accion === 'abrir') {
-      setEstadoMesa('abierta');
-      setMesaCerradaConfirmada(false);
-    } else if (accion === 'cerrar') {
-      setEstadoMesa('cerrada');
-      setMesaCerradaConfirmada(true);
-    }
+    if (accion === 'abrir') abrirMesa();
+    else if (accion === 'cerrar') cerrarMesa();
     cerrarModal();
   };
 
@@ -31,48 +36,36 @@ function HomeMesa() {
     <div className="container">
       <div className="sidebar">
         <div className="logo">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/64/Coat_of_arms_of_Uruguay_%281829-1908%29.svg/330px-Coat_of_arms_of_Uruguay_%281829-1908%29.svg.png" alt="Logo" />
+          <img src="..\pictures\Coat_of_arms_of_Uruguay.svg.png" alt="Logo" />
           <h3>
             CORTE ELECTORAL<br />
             <small>República Oriental del Uruguay</small>
           </h3>
         </div>
-
-        <div className="sidebar-content">
-          <nav>
-            <p className="nav-title">Navegación</p>
-            <ul>
-              <li className={estadoMesa === 'abierta' ? 'enabled' : 'disabled'}>
-                <span className="circle"></span> Lista Votantes
-              </li>
-              <li className={mesaCerradaConfirmada ? 'enabled' : 'disabled'}>
-                <span className="circle"></span> Ver Resultados
-              </li>
-            </ul>
-          </nav>
-
-          <div className="mesa-status">
-            <p>
-              <strong>Estado de la mesa</strong><br />
-              {estadoMesa.charAt(0).toUpperCase() + estadoMesa.slice(1)}
-            </p>
-            <button
-              className="btn blue"
-              onClick={() => abrirModal('abrir')}
-              disabled={estadoMesa === 'abierta'}
+        <nav>
+          <p className="nav-title">Navegación</p>
+          <ul>
+            <li
+              className={puedeVerVotantes ? 'activo' : 'inactivo'}
+              onClick={() => puedeVerVotantes && navigate('/votantes')}
             >
-              Abrir Mesa
-            </button>
-            <button
-              className="btn red"
-              onClick={() => abrirModal('cerrar')}
-              disabled={estadoMesa === 'cerrada'}
+              <span className="circle"></span> Lista Votantes
+            </li>
+            <li
+              className={puedeVerResultados ? 'activo' : 'inactivo'}
+              onClick={() => puedeVerResultados && navigate('/resultados')}
             >
-              Cerrar Mesa
-            </button>
-          </div>
+              <span className="circle"></span> Ver Resultados
+            </li>
+          </ul>
+        </nav>
+        <div className="mesa-status">
+          <p><strong>Estado de la mesa</strong><br />
+            {mesaAbierta ? 'Abierta' : mesaCerrada ? 'Cerrada' : 'Sin iniciar'}
+          </p>
+          <button className="btn blue" disabled={mesaAbierta || mesaCerrada} onClick={() => abrirModal('abrir')}>Abrir Mesa</button>
+          <button className="btn red" disabled={!mesaAbierta || mesaCerrada} onClick={() => abrirModal('cerrar')}>Cerrar Mesa</button>
         </div>
-
         <footer>
           <p>Desarrollado por Soft<br /><small>Contacto: +598 91234567</small></p>
         </footer>
@@ -85,8 +78,8 @@ function HomeMesa() {
         <section className="stats-section">
           <div className="card">
             <h3>Estado</h3>
-            <p className={`status ${estadoMesa}`}>
-              {estadoMesa.charAt(0).toUpperCase() + estadoMesa.slice(1)}
+            <p className={`status ${mesaAbierta ? 'abierto' : 'cerrado'}`}>
+              {mesaAbierta ? 'Abierta' : mesaCerrada ? 'Cerrada' : 'Sin iniciar'}
             </p>
           </div>
           <div className="card">
