@@ -3,32 +3,29 @@ from db import get_db_connection
 
 circuito_bp = Blueprint("circuito", __name__)
 
-@circuito_bp.route("/", methods=["GET"])
+@circuito_bp.route("/", methods=["POST"])
 def get_circuito_por_credencial():
-    serie = request.args.get("serie")
-    numero = request.args.get("numero")
-    fecha = request.args.get("fecha")
+    data = request.get_json()
+    serie = data.get("serie")
+    numero = data.get("numero")
+    fecha = data.get("fecha")
     print(f"Parámetros recibidos: serie={serie}, numero={numero}, fecha={fecha}")
-    
+
     if not (serie and numero and fecha):
         return jsonify({"error": "Faltan parámetros: serie, numero o fecha"}), 400
 
     conn = get_db_connection()
     try:
-        # Primer cursor con buffered
-        cursor = conn.cursor(dictionary=True, buffered=True)
-        cursor.execute("SELECT ID FROM Eleccion WHERE Fecha = %s;", (fecha,))
-        eleccion = cursor.fetchone()
-        cursor.close()
-
+        cursor1 = conn.cursor(dictionary=True, buffered=True)  # Usar buffered para evitar problemas de conexión
+        cursor1.execute("SELECT ID FROM Eleccion WHERE Fecha = %s;", (fecha,))
+        eleccion = cursor1.fetchone()
         if not eleccion:
             return jsonify({"error": "No se encontró una elección para esa fecha"}), 404
-
+        cursor1.close()
         id_eleccion = eleccion["ID"]
         print(f"ID de elección encontrado: {id_eleccion}")
 
-        # Segundo cursor con buffered
-        cursor2 = conn.cursor(dictionary=True, buffered=True)
+        cursor2 = conn.cursor(dictionary=True, buffered=True)  # Usar buffered para evitar problemas de conexión
         cursor2.execute("""
             SELECT a.ID_circuito, a.ID_eleccion
             FROM Asignado a
