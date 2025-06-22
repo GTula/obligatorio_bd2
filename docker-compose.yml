@@ -6,10 +6,11 @@ services:
     ports:
       - "5000:5000"
     environment:
-      DB_HOST: host.docker.internal  # Esto conecta con tu base local
-      DB_USER: root
-      DB_PASSWORD: 1117
-      DB_NAME: obligatorio
+      DB_HOST: mysql.reto-ucu.net  
+      DB_USER: ic_g7_admin
+      DB_PASSWORD: Bd2025!
+      DB_NAME: IC_Grupo7
+      DB_PORT: 50006
       FLASK_APP: app.py
     depends_on: []
 

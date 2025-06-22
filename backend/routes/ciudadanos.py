@@ -7,7 +7,7 @@ ciudadanos_bp = Blueprint("ciudadanos", __name__)
 def get_ciudadanos():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM Ciudadano;")
+    cursor.execute("SELECT * FROM ciudadano;")
     ciudadanos = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -17,13 +17,13 @@ def get_ciudadanos():
 def get_ciudadano(ci):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM Ciudadano WHERE CI = %s;", (ci,))
+    cursor.execute("SELECT * FROM ciudadano WHERE ci = %s;", (ci,))
     ciudadano = cursor.fetchone()
     cursor.close()
     conn.close()
     if ciudadano:
         return jsonify(ciudadano)
-    return jsonify({"error": "Ciudadano no encontrado"}), 404
+    return jsonify({"error": "ciudadano no encontrado"}), 404
 
 def validar_ci_uruguaya(ci):
     """Valida la cédula uruguaya usando el dígito verificador."""
@@ -38,18 +38,18 @@ def validar_ci_uruguaya(ci):
 @ciudadanos_bp.route("/", methods=["POST"])
 def create_ciudadano():
     data = request.json
-    ci = data.get("CI", "")
+    ci = data.get("ci", "")
     if not validar_ci_uruguaya(ci):
         return jsonify({"error": "Cédula inválida"}), 400
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "INSERT INTO Ciudadano (CI, nombre, apellido, Fecha_nac) VALUES (%s, %s, %s, %s);",
-            (ci, data["nombre"], data["apellido"], data["Fecha_nac"])
+            "INSERT INTO ciudadano (ci, nombre, apellido, fecha_nac) VALUES (%s, %s, %s, %s);",
+            (ci, data["nombre"], data["apellido"], data["fecha_nac"])
         )
         conn.commit()
-        return jsonify({"message": "Ciudadano creado"}), 201
+        return jsonify({"message": "ciudadano creado"}), 201
     except Exception as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 400
@@ -64,13 +64,13 @@ def update_ciudadano(ci):
     cursor = conn.cursor()
     try:
         cursor.execute(
-            "UPDATE Ciudadano SET nombre=%s, apellido=%s, Fecha_nac=%s WHERE CI=%s;",
-            (data["nombre"], data["apellido"], data["Fecha_nac"], ci)
+            "UPDATE ciudadano SET nombre=%s, apellido=%s, fecha_nac=%s WHERE ci=%s;",
+            (data["nombre"], data["apellido"], data["fecha_nac"], ci)
         )
         conn.commit()
         if cursor.rowcount == 0:
-            return jsonify({"error": "Ciudadano no encontrado"}), 404
-        return jsonify({"message": "Ciudadano actualizado"})
+            return jsonify({"error": "ciudadano no encontrado"}), 404
+        return jsonify({"message": "ciudadano actualizado"})
     except Exception as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 400
@@ -83,11 +83,11 @@ def delete_ciudadano(ci):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("DELETE FROM Ciudadano WHERE CI=%s;", (ci,))
+        cursor.execute("DELETE FROM ciudadano WHERE ci=%s;", (ci,))
         conn.commit()
         if cursor.rowcount == 0:
-            return jsonify({"error": "Ciudadano no encontrado"}), 404
-        return jsonify({"message": "Ciudadano eliminado"})
+            return jsonify({"error": "ciudadano no encontrado"}), 404
+        return jsonify({"message": "ciudadano eliminado"})
     except Exception as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 400
