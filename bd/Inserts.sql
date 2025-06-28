@@ -52,8 +52,8 @@ INSERT INTO credencial(serie, numero, ci_ciudadano) VALUES
 ('A', 1001, 12345678),
 ('B', 1002, 23456789);
 
-INSERT INTO candidato(ci_ciudadano, id_partido) VALUES
-(12345678, 1);
+INSERT INTO candidato(ci_ciudadano) VALUES
+(12345678);
 
 INSERT INTO autoridad(ci_ciudadano, id_partido) VALUES
 (23456789, 2);
@@ -76,8 +76,11 @@ INSERT INTO tipo_empleado( nombre) VALUES
 INSERT INTO mesa (num, id_circuito, id_eleccion) VALUES
 (1, 1, 1);
 
-INSERT INTO empleado_publico (ci_ciudadano, num_mesa, id_tipo) VALUES
-(23456789, 1, 1);
+INSERT INTO empleado_publico (ci_ciudadano) VALUES
+(23456789);
+
+INSERT INTO participacion_en_mesa (ci_ciudadano, num_mesa, id_circuito, id_eleccion, id_tipo) VALUES
+(23456789, 1, 1, 1, 1);
 
 INSERT INTO asignado (serie_credencial, numero_credencial, id_circuito, id_eleccion) VALUES
 ('A', 1001, 1, 1);

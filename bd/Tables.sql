@@ -46,9 +46,7 @@ CREATE TABLE establecimiento (
 
 CREATE TABLE candidato (
     ci_ciudadano varchar(8) NOT NULL PRIMARY KEY,
-	id_partido int NOT NULL,
-    FOREIGN KEY (ci_ciudadano) REFERENCES ciudadano(ci),
-    FOREIGN KEY (id_partido ) REFERENCES partido(id)
+    FOREIGN KEY (ci_ciudadano) REFERENCES ciudadano(ci)
 );
 
 CREATE TABLE autoridad (
@@ -99,9 +97,10 @@ CREATE TABLE circuito (
 );
 
 CREATE TABLE mesa (
-    num int PRIMARY KEY,
-    id_circuito int NOT NULL,
-    id_eleccion int NOT NULL,
+    num INT NOT NULL,
+    id_circuito INT NOT NULL,
+    id_eleccion INT NOT NULL,
+    PRIMARY KEY (num, id_circuito, id_eleccion),
     FOREIGN KEY (id_circuito, id_eleccion) REFERENCES circuito(id, id_eleccion)
 );
 
@@ -112,13 +111,20 @@ CREATE TABLE tipo_empleado (
 
 CREATE TABLE empleado_publico (
     ci_ciudadano varchar(8) PRIMARY KEY,
-    num_mesa int NOT NULL,
-	id_tipo int NOT NULL,
-    FOREIGN KEY (num_mesa) REFERENCES mesa(num),
-    FOREIGN KEY (id_tipo) REFERENCES tipo_empleado(id),
     FOREIGN KEY (ci_ciudadano) REFERENCES ciudadano(ci)
 );
 
+CREATE TABLE participacion_en_mesa (
+    ci_ciudadano VARCHAR(8) NOT NULL,
+    num_mesa INT NOT NULL,
+    id_circuito INT NOT NULL,
+    id_eleccion INT NOT NULL,
+    id_tipo INT NOT NULL,
+    PRIMARY KEY (ci_ciudadano, num_mesa, id_circuito, id_eleccion, id_tipo),
+    FOREIGN KEY (ci_ciudadano) REFERENCES empleado_publico(ci_ciudadano),
+    FOREIGN KEY (num_mesa, id_circuito, id_eleccion) REFERENCES mesa(num, id_circuito, id_eleccion),
+    FOREIGN KEY (id_tipo) REFERENCES tipo_empleado(id)
+);
 CREATE TABLE asignado (
     serie_credencial varchar(5) NOT NULL,
     numero_credencial varchar(5) NOT NULL,
