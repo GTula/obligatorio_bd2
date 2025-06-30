@@ -7,6 +7,7 @@ from routes.empleados import login_presidente_bp
 from routes.eleccion import eleccion_bp
 from routes.admin.loginAdmin import login_admin_bp
 from routes.admin.EntidadesPrincipales import admin_bp
+from routes.votanteCircuito import votacion_bp  # 👈 nuevo import
 
 app = Flask(__name__)
 CORS(app)
@@ -18,6 +19,9 @@ app.register_blueprint(login_presidente_bp, url_prefix="/api/login_presidente")
 app.register_blueprint(eleccion_bp, url_prefix="/api/eleccion")
 app.register_blueprint(login_admin_bp, url_prefix="/api/login_admin")
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
+app.register_blueprint(votacion_bp, url_prefix="/api/votacion")
+
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
