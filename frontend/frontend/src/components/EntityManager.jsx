@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import { adminService } from '../services/adminService';
+import { validarCI } from '../services/validations';
 import '../styles/EntityManager.css';
 
 const EntityManager = ({ entity, onBack }) => {
@@ -54,9 +55,27 @@ const EntityManager = ({ entity, onBack }) => {
     }));
   };
 
+  // Función mejorada para detectar campos de cédula
+  const isCedulaField = (fieldName) => {
+    const lowerField = fieldName.toLowerCase();
+    return lowerField === 'ci' || 
+           lowerField === 'ci_ciudadano' || 
+           lowerField === 'ci_policia' || 
+           lowerField === 'id_candidato' ||
+           lowerField.startsWith('ci_') ||
+           lowerField.endsWith('_ci');
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
+      // Validar cédulas antes de enviar
+      for (const field of entity.fields) {
+        if (isCedulaField(field) && formData[field] && !validarCI(formData[field])) {
+          throw new Error(`La cédula en el campo ${field} no es válida`);
+        }
+      }
+
       // Convert dates in formData before sending to backend
       const processedData = { ...formData };
       entity.fields.forEach(field => {
@@ -137,6 +156,9 @@ const EntityManager = ({ entity, onBack }) => {
       }
     }
 
+    // Usar la función mejorada para detectar campos de cédula
+    const isCIField = isCedulaField(field);
+
     switch (validation?.type) {
       case 'date':
         return (
@@ -152,8 +174,22 @@ const EntityManager = ({ entity, onBack }) => {
           <input
             type="number"
             value={value}
-            onChange={(e) => handleInputChange(field, e.target.value)}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              handleInputChange(field, newValue);
+            }}
             required={validation.required}
+            min={isCIField ? 10000000 : undefined}
+            max={isCIField ? 99999999 : undefined}
+            onBlur={(e) => {
+              // Validar cédula cuando el usuario sale del campo
+              if (isCIField && e.target.value && !validarCI(e.target.value)) {
+                e.target.setCustomValidity('Cédula uruguaya inválida');
+                e.target.reportValidity();
+              } else {
+                e.target.setCustomValidity('');
+              }
+            }}
           />
         );
       case 'checkbox':
@@ -163,6 +199,21 @@ const EntityManager = ({ entity, onBack }) => {
             checked={value}
             onChange={(e) => handleInputChange(field, e.target.checked)}
           />
+        );
+      case 'select':
+        return (
+          <select
+            value={value}
+            onChange={(e) => handleInputChange(field, e.target.value)}
+            required={validation.required}
+          >
+            <option value="">Seleccione...</option>
+            {validation.options?.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         );
       default:
         return (
@@ -180,6 +231,24 @@ const EntityManager = ({ entity, onBack }) => {
     switch (action) {
       case 'create':
       case 'update':
+        // Verificar si la entidad solo tiene campos de ID de ciudadano y no debería permitir modificación
+        const hasOnlyCIFields = entity.fields.every(field => 
+          isCedulaField(field) || 
+          field.toLowerCase().includes('id')
+        );
+        
+        if (action === 'update' && hasOnlyCIFields && entity.fields.length <= 2) {
+          return (
+            <div className="info-container">
+              <h3>Modificación no disponible</h3>
+              <p>Esta entidad solo contiene campos de identificación y no puede ser modificada.</p>
+              <div className="modal-buttons">
+                <button onClick={closeModal} className="btn-secondary">Cerrar</button>
+              </div>
+            </div>
+          );
+        }
+
         return (
           <div className="form-container">
             <h3>{action === 'create' ? 'Crear' : 'Actualizar'} {entity.name}</h3>
@@ -273,6 +342,14 @@ const EntityManager = ({ entity, onBack }) => {
     }
   };
 
+  // Verificar si la entidad solo tiene campos de ID de ciudadano para ocultar el botón de modificar
+  const hasOnlyCIFields = entity.fields.every(field => 
+    isCedulaField(field) || 
+    field.toLowerCase().includes('id')
+  );
+  
+  const shouldHideUpdate = hasOnlyCIFields && entity.fields.length <= 2;
+
   return (
     <div className="entity-manager">
       <div className="header">
@@ -291,13 +368,15 @@ const EntityManager = ({ entity, onBack }) => {
           <p>Ver todos los {entity.name.toLowerCase()}</p>
         </div>
 
-        <div className="action-card update" onClick={() => {
-          setAction('update');
-          fetchData();
-        }}>
-          <h3>Modificar</h3>
-          <p>Actualizar {entity.name.toLowerCase()}</p>
-        </div>
+        {!shouldHideUpdate && (
+          <div className="action-card update" onClick={() => {
+            setAction('update');
+            fetchData();
+          }}>
+            <h3>Modificar</h3>
+            <p>Actualizar {entity.name.toLowerCase()}</p>
+          </div>
+        )}
 
         <div className="action-card delete" onClick={() => {
           setAction('delete');

@@ -212,12 +212,18 @@ def eliminar_partido(id):
         cursor.close()
         conn.close()
 
-# -------------------- Establecimiento --------------------
+# -------------------- Establecimiento (COMPLETAR TODOS LOS ENDPOINTS) --------------------
 @admin_bp.route('/establecimientos', methods=['GET'])
 def listar_establecimientos():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM establecimiento")
+    cursor.execute("""
+        SELECT e.id, e.direccion, e.id_zona, e.id_departamento, 
+               z.nombre as zona_nombre, d.nombre as departamento_nombre
+        FROM establecimiento e
+        JOIN zona z ON e.id_zona = z.id AND e.id_departamento = z.id_departamento
+        JOIN departamento d ON e.id_departamento = d.id
+    """)
     data = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -228,24 +234,44 @@ def crear_establecimiento():
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO establecimiento (direccion, id_zona, id_departamento) VALUES (%s, %s, %s)",
-                   (data['direccion'], data['id_zona'], data['id_departamento']))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Establecimiento creado'})
+    try:
+        # Verificar que zona y departamento coinciden
+        cursor.execute("SELECT id FROM zona WHERE id = %s AND id_departamento = %s", 
+                       (data['id_zona'], data['id_departamento']))
+        if not cursor.fetchone():
+            return jsonify({'error': 'La zona no pertenece al departamento seleccionado'}), 400
+            
+        cursor.execute("INSERT INTO establecimiento (direccion, id_zona, id_departamento) VALUES (%s, %s, %s)",
+                       (data['direccion'], data['id_zona'], data['id_departamento']))
+        conn.commit()
+        return jsonify({'mensaje': 'Establecimiento creado'})
+    except Exception as e:
+        return jsonify({'error': f'Error creando establecimiento: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
 @admin_bp.route('/establecimiento/<int:id>', methods=['PUT'])
 def modificar_establecimiento(id):
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE establecimiento SET direccion = %s, id_zona = %s, id_departamento = %s WHERE id = %s",
-                   (data['direccion'], data['id_zona'], data['id_departamento'], id))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Establecimiento modificado'})
+    try:
+        # Verificar que zona y departamento coinciden
+        cursor.execute("SELECT id FROM zona WHERE id = %s AND id_departamento = %s", 
+                       (data['id_zona'], data['id_departamento']))
+        if not cursor.fetchone():
+            return jsonify({'error': 'La zona no pertenece al departamento seleccionado'}), 400
+            
+        cursor.execute("UPDATE establecimiento SET direccion = %s, id_zona = %s, id_departamento = %s WHERE id = %s",
+                       (data['direccion'], data['id_zona'], data['id_departamento'], id))
+        conn.commit()
+        return jsonify({'mensaje': 'Establecimiento modificado'})
+    except Exception as e:
+        return jsonify({'error': f'Error modificando establecimiento: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
 @admin_bp.route('/establecimiento/<int:id>', methods=['DELETE'])
 def eliminar_establecimiento(id):
@@ -261,13 +287,35 @@ def eliminar_establecimiento(id):
     finally:
         cursor.close()
         conn.close()
-
 # -------------------- Zona --------------------
+@admin_bp.route('/zona/<int:id>/<int:id_departamento>', methods=['PUT'])
+def modificar_zona(id, id_departamento):
+    data = request.json
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE zona SET nombre = %s WHERE id = %s AND id_departamento = %s",
+                       (data['nombre'], id, id_departamento))
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Zona no encontrada'}), 404
+        conn.commit()
+        return jsonify({'mensaje': 'Zona modificada'})
+    except Exception as e:
+        return jsonify({'error': f'Error modificando zona: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+# -------------------- Zona (COMPLETAR TODOS LOS ENDPOINTS) --------------------
 @admin_bp.route('/zonas', methods=['GET'])
 def listar_zonas():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM zona")
+    cursor.execute("""
+        SELECT z.id, z.nombre, z.id_departamento, d.nombre as departamento_nombre
+        FROM zona z
+        JOIN departamento d ON z.id_departamento = d.id
+    """)
     data = cursor.fetchall()
     cursor.close()
     conn.close()
@@ -278,24 +326,16 @@ def crear_zona():
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO zona (nombre, id_departamento) VALUES (%s, %s)",
-                   (data['nombre'], data['id_departamento']))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Zona creada'})
-
-@admin_bp.route('/zona/<int:id>/<int:id_departamento>', methods=['PUT'])
-def modificar_zona(id, id_departamento):
-    data = request.json
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE zona SET nombre = %s WHERE id = %s AND id_departamento = %s",
-                   (data['nombre'], id, id_departamento))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Zona modificada'})
+    try:
+        cursor.execute("INSERT INTO zona (nombre, id_departamento) VALUES (%s, %s)",
+                       (data['nombre'], data['id_departamento']))
+        conn.commit()
+        return jsonify({'mensaje': 'Zona creada'})
+    except Exception as e:
+        return jsonify({'error': f'Error creando zona: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
 @admin_bp.route('/zona/<int:id>/<int:id_departamento>', methods=['DELETE'])
 def eliminar_zona(id, id_departamento):
@@ -311,36 +351,20 @@ def eliminar_zona(id, id_departamento):
     finally:
         cursor.close()
         conn.close()
-
-
-
-
-
-
 # -------------------- Candidato (continuación) --------------------
 @admin_bp.route('/candidato', methods=['POST'])
 def crear_candidato():
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO candidato (ci_ciudadano, id_partido) VALUES (%s, %s)",
-                   (data['ci_ciudadano'], data['id_partido']))
+    cursor.execute("INSERT INTO candidato (ci_ciudadano) VALUES (%s)",
+                   (data['ci_ciudadano']))
     conn.commit()
     cursor.close()
     conn.close()
     return jsonify({'mensaje': 'Candidato creado'})
 
-@admin_bp.route('/candidato/<ci>', methods=['PUT'])
-def modificar_candidato(ci):
-    data = request.json
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE candidato SET id_partido = %s WHERE ci_ciudadano = %s",
-                   (data['id_partido'], ci))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Candidato modificado'})
+
 
 @admin_bp.route('/candidato/<ci>', methods=['DELETE'])
 def eliminar_candidato(ci):
@@ -549,103 +573,58 @@ def eliminar_agente_policia(ci):
         conn.close()
 
 # -------------------- Circuito --------------------
-@admin_bp.route('/circuitos', methods=['GET'])
-def listar_circuitos():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM circuito")
-    data = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return jsonify(data)
-
-@admin_bp.route('/circuito', methods=['POST'])
-def crear_circuito():
-    data = request.json
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO circuito (id_eleccion, accesible, id_establecimiento) VALUES (%s, %s, %s)",
-                   (data['id_eleccion'], data['accesible'], data['id_establecimiento']))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Circuito creado'})
-
 @admin_bp.route('/circuito/<int:id>/<int:id_eleccion>', methods=['PUT'])
 def modificar_circuito(id, id_eleccion):
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE circuito SET accesible = %s, id_establecimiento = %s WHERE id = %s AND id_eleccion = %s",
-                   (data['accesible'], data['id_establecimiento'], id, id_eleccion))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Circuito modificado'})
-
-@admin_bp.route('/circuito/<int:id>/<int:id_eleccion>', methods=['DELETE'])
-def eliminar_circuito(id, id_eleccion):
+    try:
+        cursor.execute("UPDATE circuito SET accesible = %s, id_establecimiento = %s WHERE id = %s AND id_eleccion = %s",
+                       (data['accesible'], data['id_establecimiento'], id, id_eleccion))
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Circuito no encontrado'}), 404
+        conn.commit()
+        return jsonify({'mensaje': 'Circuito modificado'})
+    except Exception as e:
+        return jsonify({'error': f'Error modificando circuito: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
+# -------------------- Mesa --------------------
+@admin_bp.route('/mesa/<int:num>/<int:id_circuito>/<int:id_eleccion>', methods=['PUT'])
+def modificar_mesa(num, id_circuito, id_eleccion):
+    data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("DELETE FROM circuito WHERE id = %s AND id_eleccion = %s", (id, id_eleccion))
+        cursor.execute("UPDATE mesa SET id_circuito = %s, id_eleccion = %s WHERE num = %s AND id_circuito = %s AND id_eleccion = %s",
+                       (data['id_circuito'], data['id_eleccion'], num, id_circuito, id_eleccion))
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Mesa no encontrada'}), 404
         conn.commit()
-        return jsonify({'mensaje': 'Circuito eliminado'})
+        return jsonify({'mensaje': 'Mesa modificada'})
     except Exception as e:
-        return jsonify({'error': 'No se puede eliminar circuito: ' + str(e)}), 400
+        return jsonify({'error': f'Error modificando mesa: {str(e)}'}), 400
     finally:
         cursor.close()
         conn.close()
 
-# -------------------- Mesa --------------------
-@admin_bp.route('/mesas', methods=['GET'])
-def listar_mesas():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM mesa")
-    data = cursor.fetchall()
-    cursor.close()
-    conn.close()
-    return jsonify(data)
-
-@admin_bp.route('/mesa', methods=['POST'])
-def crear_mesa():
-    data = request.json
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("INSERT INTO mesa (num, id_circuito, id_eleccion) VALUES (%s, %s, %s)",
-                   (data['num'], data['id_circuito'], data['id_eleccion']))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Mesa creada'})
-
-@admin_bp.route('/mesa/<int:num>', methods=['PUT'])
-def modificar_mesa(num):
-    data = request.json
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("UPDATE mesa SET id_circuito = %s, id_eleccion = %s WHERE num = %s",
-                   (data['id_circuito'], data['id_eleccion'], num))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Mesa modificada'})
-
-@admin_bp.route('/mesa/<int:num>', methods=['DELETE'])
-def eliminar_mesa(num):
+@admin_bp.route('/mesa/<int:num>/<int:id_circuito>/<int:id_eleccion>', methods=['DELETE'])
+def eliminar_mesa(num, id_circuito, id_eleccion):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("DELETE FROM mesa WHERE num = %s", (num,))
+        cursor.execute("DELETE FROM mesa WHERE num = %s AND id_circuito = %s AND id_eleccion = %s", 
+                       (num, id_circuito, id_eleccion))
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Mesa no encontrada'}), 404
         conn.commit()
         return jsonify({'mensaje': 'Mesa eliminada'})
     except Exception as e:
-        return jsonify({'error': 'No se puede eliminar mesa: ' + str(e)}), 400
+        return jsonify({'error': f'Error eliminando mesa: {str(e)}'}), 400
     finally:
         cursor.close()
         conn.close()
-
 
 
 
@@ -653,27 +632,41 @@ def eliminar_mesa(num):
 
 
 # -------------------- Empleado Público (continuación) --------------------
-@admin_bp.route('/empleado-publico/<ci>', methods=['PUT'])
-def modificar_empleado_publico(ci):
+@admin_bp.route('/empleados-publicos', methods=['GET'])
+def listar_empleados_publicos():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT ep.ci_ciudadano, ci.nombre, ci.apellido, ep.num_mesa, ep.id_tipo, te.nombre as tipo_nombre
+        FROM empleado_publico ep 
+        JOIN ciudadano ci ON ep.ci_ciudadano = ci.ci
+        LEFT JOIN tipo_empleado te ON ep.id_tipo = te.id
+    """)
+    data = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(data)
+
+@admin_bp.route('/empleado-publico', methods=['POST'])
+def crear_empleado_publico():
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE empleado_publico SET num_mesa = %s, id_tipo = %s WHERE ci_ciudadano = %s",
-                   (data['num_mesa'], data['id_tipo'], ci))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Empleado público modificado'})
-
-@admin_bp.route('/empleado-publico/<ci>', methods=['DELETE'])
-def eliminar_empleado_publico(ci):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM empleado_publico WHERE ci_ciudadano = %s", (ci,))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Empleado público eliminado'})
+    try:
+        # Verificar que el ciudadano existe
+        cursor.execute("SELECT ci FROM ciudadano WHERE ci = %s", (data['ci_ciudadano'],))
+        if not cursor.fetchone():
+            return jsonify({'error': 'El ciudadano no existe'}), 400
+            
+        cursor.execute("INSERT INTO empleado_publico (ci_ciudadano, num_mesa, id_tipo) VALUES (%s, %s, %s)",
+                       (data['ci_ciudadano'], data.get('num_mesa'), data.get('id_tipo')))
+        conn.commit()
+        return jsonify({'mensaje': 'Empleado público creado'})
+    except Exception as e:
+        return jsonify({'error': f'Error creando empleado público: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
 # -------------------- Asignado --------------------
 @admin_bp.route('/asignados', methods=['GET'])
@@ -918,28 +911,31 @@ def eliminar_candidato_por_lista(id_papeleta, id_eleccion, id_candidato):
 
 
 # -------------------- Voto Elige Papeleta (continuación) --------------------
-@admin_bp.route('/voto-elige-papeleta/<int:id_voto_normal>/<int:id_papeleta>/<int:id_eleccion>', methods=['PUT'])
-def modificar_voto_elige_papeleta(id_voto_normal, id_papeleta, id_eleccion):
+@admin_bp.route('/voto-elige-papeleta', methods=['GET'])
+def listar_voto_elige_papeleta():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM voto_elige_papeleta")
+    data = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(data)
+
+@admin_bp.route('/voto-elige-papeleta', methods=['POST'])
+def crear_voto_elige_papeleta():
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE voto_elige_papeleta SET id_papeleta = %s, id_eleccion = %s WHERE id_voto_normal = %s AND id_papeleta = %s AND id_eleccion = %s",
-                   (data['id_papeleta'], data['id_eleccion'], id_voto_normal, id_papeleta, id_eleccion))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Voto elige papeleta modificado'})
-
-@admin_bp.route('/voto-elige-papeleta/<int:id_voto_normal>/<int:id_papeleta>/<int:id_eleccion>', methods=['DELETE'])
-def eliminar_voto_elige_papeleta(id_voto_normal, id_papeleta, id_eleccion):
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("DELETE FROM voto_elige_papeleta WHERE id_voto_normal = %s AND id_papeleta = %s AND id_eleccion = %s",
-                   (id_voto_normal, id_papeleta, id_eleccion))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Voto elige papeleta eliminado'})
+    try:
+        cursor.execute("INSERT INTO voto_elige_papeleta (id_voto_normal, id_papeleta, id_eleccion) VALUES (%s, %s, %s)",
+                       (data['id_voto_normal'], data['id_papeleta'], data['id_eleccion']))
+        conn.commit()
+        return jsonify({'mensaje': 'Voto elige papeleta creado'})
+    except Exception as e:
+        return jsonify({'error': f'Error creando voto elige papeleta: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
 # -------------------- Tipo Elección --------------------
 @admin_bp.route('/tipos-eleccion', methods=['GET'])
@@ -1279,3 +1275,17 @@ def eliminar_papeleta_plebiscito(id_papeleta, id_eleccion):
     cursor.close()
     conn.close()
     return jsonify({'mensaje': 'Papeleta plebiscito eliminada'})
+
+@admin_bp.route('/papeletas-plebiscito', methods=['GET'])
+def listar_papeletas_plebiscito():
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT pp.id_papeleta, pp.id_eleccion, pp.nombre, pp.valor, e.fecha as fecha_eleccion
+        FROM papeleta_plebiscito pp
+        JOIN eleccion e ON pp.id_eleccion = e.id
+    """)
+    data = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return jsonify(data)
