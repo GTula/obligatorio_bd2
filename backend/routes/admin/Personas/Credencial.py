@@ -16,7 +16,7 @@ def listar_credenciales():
     conn.close()
     return jsonify(data)
 
-@credencial_bp.route('', methods=['POST'])
+@credencial_bp.route('/credencial', methods=['POST'])
 def crear_credencial():
     data = request.json
     conn = get_db_connection()
@@ -28,7 +28,7 @@ def crear_credencial():
     conn.close()
     return jsonify({'mensaje': 'Credencial creada'})
 
-@credencial_bp.route('/<serie>/<numero>', methods=['PUT'])
+@credencial_bp.route('/credencial/<serie>/<numero>', methods=['PUT'])
 def modificar_credencial(serie, numero):
     data = request.json
     conn = get_db_connection()
@@ -40,7 +40,7 @@ def modificar_credencial(serie, numero):
     conn.close()
     return jsonify({'mensaje': 'Credencial modificada'})
 
-@credencial_bp.route('/<serie>/<numero>', methods=['DELETE'])
+@credencial_bp.route('/credencial/<serie>/<numero>', methods=['DELETE'])
 def eliminar_credencial(serie, numero):
     conn = get_db_connection()
     cursor = conn.cursor()

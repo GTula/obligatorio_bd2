@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
 
-agente_policia_bp = Blueprint('agente_policia', __name__)
+agente_policia_bp = Blueprint('agente-policia', __name__)
 
 
 # -------------------- Agente Policía --------------------
@@ -16,7 +16,7 @@ def listar_agentes_policia():
     conn.close()
     return jsonify(data)
 
-@agente_policia_bp.route('', methods=['POST'])
+@agente_policia_bp.route('/agente-policia', methods=['POST'])
 def crear_agente_policia():
     data = request.json
     conn = get_db_connection()
@@ -28,7 +28,7 @@ def crear_agente_policia():
     conn.close()
     return jsonify({'mensaje': 'Agente de policía creado'})
 
-@agente_policia_bp.route('/<ci>', methods=['PUT'])
+@agente_policia_bp.route('/agente-policia/<ci>', methods=['PUT'])
 def modificar_agente_policia(ci):
     data = request.json
     conn = get_db_connection()
@@ -40,7 +40,7 @@ def modificar_agente_policia(ci):
     conn.close()
     return jsonify({'mensaje': 'Agente de policía modificado'})
 
-@agente_policia_bp.route('/<ci>', methods=['DELETE'])
+@agente_policia_bp.route('/agente-policia/<ci>', methods=['DELETE'])
 def eliminar_agente_policia(ci):
     conn = get_db_connection()
     cursor = conn.cursor()

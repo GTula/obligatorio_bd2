@@ -53,10 +53,10 @@ def login_presidente():
         # Buscar si el ciudadano es presidente de mesa en esa elección
         cursor4 = conn.cursor(dictionary=True, buffered=True)
         cursor4.execute("""
-            SELECT ep.num_mesa
-            FROM empleado_publico ep
-            JOIN mesa m ON ep.num_mesa = m.num
-            WHERE ep.ci_ciudadano = %s AND ep.id_tipo = %s AND m.id_eleccion = %s
+            SELECT pm.num_mesa
+            FROM participacion_en_mesa pm
+            JOIN empleado_publico ep ON pm.ci_ciudadano = ep.ci_ciudadano
+            WHERE ep.ci_ciudadano = %s AND pm.id_tipo = %s AND pm.id_eleccion = %s
         """, (ci, id_tipo, id_eleccion))
         presidente = cursor4.fetchone()
         cursor4.close()

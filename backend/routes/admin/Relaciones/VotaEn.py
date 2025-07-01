@@ -5,7 +5,7 @@ vota_en_bp = Blueprint('vota-en', __name__)
 
 
 # -------------------- Vota En --------------------
-@vota_en_bp.route('/', methods=['GET'])
+@vota_en_bp.route('/vota-en', methods=['GET'])
 def listar_vota_en():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -15,7 +15,7 @@ def listar_vota_en():
     conn.close()
     return jsonify(data)
 
-@vota_en_bp.route('', methods=['POST'])
+@vota_en_bp.route('/vota-en', methods=['POST'])
 def crear_vota_en():
     data = request.json
     conn = get_db_connection()
@@ -27,7 +27,7 @@ def crear_vota_en():
     conn.close()
     return jsonify({'mensaje': 'Voto registrado'})
 
-@vota_en_bp.route('/<serie>/<numero>/<int:id_circuito>/<int:id_eleccion>', methods=['PUT'])
+@vota_en_bp.route('/vota-en/<serie>/<numero>/<int:id_circuito>/<int:id_eleccion>', methods=['PUT'])
 def modificar_vota_en(serie, numero, id_circuito, id_eleccion):
     data = request.json
     conn = get_db_connection()
@@ -39,7 +39,7 @@ def modificar_vota_en(serie, numero, id_circuito, id_eleccion):
     conn.close()
     return jsonify({'mensaje': 'Voto modificado'})
 
-@vota_en_bp.route('/<serie>/<numero>/<int:id_circuito>/<int:id_eleccion>', methods=['DELETE'])
+@vota_en_bp.route('/vota-en/<serie>/<numero>/<int:id_circuito>/<int:id_eleccion>', methods=['DELETE'])
 def eliminar_vota_en(serie, numero, id_circuito, id_eleccion):
     conn = get_db_connection()
     cursor = conn.cursor()

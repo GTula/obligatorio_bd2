@@ -16,7 +16,7 @@ def listar_asignados():
     conn.close()
     return jsonify(data)
 
-@asignado_bp.route('', methods=['POST'])
+@asignado_bp.route('/asignado', methods=['POST'])
 def crear_asignado():
     data = request.json
     conn = get_db_connection()
@@ -28,7 +28,7 @@ def crear_asignado():
     conn.close()
     return jsonify({'mensaje': 'Asignación creada'})
 
-@asignado_bp.route('/<serie>/<numero>/<int:id_circuito>/<int:id_eleccion>', methods=['PUT'])
+@asignado_bp.route('/asignado/<serie>/<numero>/<int:id_circuito>/<int:id_eleccion>', methods=['PUT'])
 def modificar_asignado(serie, numero, id_circuito, id_eleccion):
     data = request.json
     conn = get_db_connection()
@@ -40,7 +40,7 @@ def modificar_asignado(serie, numero, id_circuito, id_eleccion):
     conn.close()
     return jsonify({'mensaje': 'Asignación modificada'})
 
-@asignado_bp.route('/<serie>/<numero>/<int:id_circuito>/<int:id_eleccion>', methods=['DELETE'])
+@asignado_bp.route('/asignado/<serie>/<numero>/<int:id_circuito>/<int:id_eleccion>', methods=['DELETE'])
 def eliminar_asignado(serie, numero, id_circuito, id_eleccion):
     conn = get_db_connection()
     cursor = conn.cursor()

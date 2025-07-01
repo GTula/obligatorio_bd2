@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
 
-tipo_eleccion_bp = Blueprint('tipo_eleccion', __name__)
+tipo_eleccion_bp = Blueprint('tipos-eleccion', __name__)
 
 # -------------------- Tipo Elección --------------------
 @tipo_eleccion_bp.route('/tipos-eleccion', methods=['GET'])
@@ -15,7 +15,7 @@ def listar_tipos_eleccion():
     conn.close()
     return jsonify(data)
 
-@tipo_eleccion_bp.route('', methods=['POST'])
+@tipo_eleccion_bp.route('/tipo-eleccion', methods=['POST'])
 def crear_tipo_eleccion():
     data = request.json
     conn = get_db_connection()
@@ -26,7 +26,7 @@ def crear_tipo_eleccion():
     conn.close()
     return jsonify({'mensaje': 'Tipo de elección creado'})
 
-@tipo_eleccion_bp.route('/<int:id>', methods=['PUT'])
+@tipo_eleccion_bp.route('/tipo-eleccion/<int:id>', methods=['PUT'])
 def modificar_tipo_eleccion(id):
     data = request.json
     conn = get_db_connection()
@@ -37,7 +37,7 @@ def modificar_tipo_eleccion(id):
     conn.close()
     return jsonify({'mensaje': 'Tipo de elección modificado'})
 
-@tipo_eleccion_bp.route('/<int:id>', methods=['DELETE'])
+@tipo_eleccion_bp.route('/tipo-eleccion/<int:id>', methods=['DELETE'])
 def eliminar_tipo_eleccion(id):
     conn = get_db_connection()
     cursor = conn.cursor()

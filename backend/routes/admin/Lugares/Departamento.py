@@ -16,7 +16,7 @@ def listar_departamentos():
     conn.close()
     return jsonify(data)
 
-@departamento_bp.route('', methods=['POST'])
+@departamento_bp.route('/departamento', methods=['POST'])
 def crear_departamento():
     data = request.json
     conn = get_db_connection()
@@ -27,7 +27,7 @@ def crear_departamento():
     conn.close()
     return jsonify({'mensaje': 'Departamento creado'})
 
-@departamento_bp.route('/<int:id>', methods=['PUT'])
+@departamento_bp.route('/departamento/<int:id>', methods=['PUT'])
 def modificar_departamento(id):
     data = request.json
     conn = get_db_connection()
@@ -38,7 +38,7 @@ def modificar_departamento(id):
     conn.close()
     return jsonify({'mensaje': 'Departamento modificado'})
 
-@departamento_bp.route('/<int:id>', methods=['DELETE'])
+@departamento_bp.route('/departamento/<int:id>', methods=['DELETE'])
 def eliminar_departamento(id):
     conn = get_db_connection()
     cursor = conn.cursor()

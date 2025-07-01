@@ -16,7 +16,7 @@ def listar_autoridades():
     conn.close()
     return jsonify(data)
 
-@autoridad_bp.route('', methods=['POST'])
+@autoridad_bp.route('/autoridad', methods=['POST'])
 def crear_autoridad():
     data = request.json
     conn = get_db_connection()
@@ -28,7 +28,7 @@ def crear_autoridad():
     conn.close()
     return jsonify({'mensaje': 'Autoridad creada'})
 
-@autoridad_bp.route('/<ci>', methods=['PUT'])
+@autoridad_bp.route('/autoridad/<ci>', methods=['PUT'])
 def modificar_autoridad(ci):
     data = request.json
     conn = get_db_connection()
@@ -40,7 +40,7 @@ def modificar_autoridad(ci):
     conn.close()
     return jsonify({'mensaje': 'Autoridad modificada'})
 
-@autoridad_bp.route('/<ci>', methods=['DELETE'])
+@autoridad_bp.route('/autoridad/<ci>', methods=['DELETE'])
 def eliminar_autoridad(ci):
     conn = get_db_connection()
     cursor = conn.cursor()

@@ -15,7 +15,7 @@ def listar_partidos():
     conn.close()
     return jsonify(data)
 
-@partido_bp.route('', methods=['POST'])
+@partido_bp.route('/partido', methods=['POST'])
 def crear_partido():
     data = request.json
     conn = get_db_connection()
@@ -27,7 +27,7 @@ def crear_partido():
     conn.close()
     return jsonify({'mensaje': 'Partido creado'})
 
-@partido_bp.route('/<int:id>', methods=['PUT'])
+@partido_bp.route('/partido/<int:id>', methods=['PUT'])
 def modificar_partido(id):
     data = request.json
     conn = get_db_connection()
@@ -39,7 +39,7 @@ def modificar_partido(id):
     conn.close()
     return jsonify({'mensaje': 'Partido modificado'})
 
-@partido_bp.route('/<int:id>', methods=['DELETE'])
+@partido_bp.route('/partido/<int:id>', methods=['DELETE'])
 def eliminar_partido(id):
     conn = get_db_connection()
     cursor = conn.cursor()

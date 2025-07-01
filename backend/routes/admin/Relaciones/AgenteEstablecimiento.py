@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
 
-agente_establecimiento_bp = Blueprint('agente_establecimiento', __name__)
+agente_establecimiento_bp = Blueprint('agente-establecimiento', __name__)
 
 
 # -------------------- Agente Establecimiento --------------------
@@ -16,7 +16,7 @@ def listar_agentes_establecimiento():
     conn.close()
     return jsonify(data)
 
-@agente_establecimiento_bp.route('', methods=['POST'])
+@agente_establecimiento_bp.route('/agente-establecimiento', methods=['POST'])
 def crear_agente_establecimiento():
     data = request.json
     conn = get_db_connection()
@@ -28,7 +28,7 @@ def crear_agente_establecimiento():
     conn.close()
     return jsonify({'mensaje': 'Agente establecimiento creado'})
 
-@agente_establecimiento_bp.route('/<ci>/<int:id_establecimiento>', methods=['PUT'])
+@agente_establecimiento_bp.route('/agente-establecimiento/<ci>/<int:id_establecimiento>', methods=['PUT'])
 def modificar_agente_establecimiento(ci, id_establecimiento):
     data = request.json
     conn = get_db_connection()
@@ -40,7 +40,7 @@ def modificar_agente_establecimiento(ci, id_establecimiento):
     conn.close()
     return jsonify({'mensaje': 'Agente establecimiento modificado'})
 
-@agente_establecimiento_bp.route('/<ci>/<int:id_establecimiento>', methods=['DELETE'])
+@agente_establecimiento_bp.route('/agente-establecimiento/<ci>/<int:id_establecimiento>', methods=['DELETE'])
 def eliminar_agente_establecimiento(ci, id_establecimiento):
     conn = get_db_connection()
     cursor = conn.cursor()

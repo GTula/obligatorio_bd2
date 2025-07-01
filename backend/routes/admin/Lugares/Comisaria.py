@@ -15,7 +15,7 @@ def listar_comisarias():
     conn.close()
     return jsonify(data)
 
-@comisaria_bp.route('', methods=['POST'])
+@comisaria_bp.route('/comisaria', methods=['POST'])
 def crear_comisaria():
     data = request.json
     conn = get_db_connection()
@@ -26,7 +26,7 @@ def crear_comisaria():
     conn.close()
     return jsonify({'mensaje': 'Comisaría creada'})
 
-@comisaria_bp.route('/<int:id>', methods=['PUT'])
+@comisaria_bp.route('/comisaria/<int:id>', methods=['PUT'])
 def modificar_comisaria(id):
     data = request.json
     conn = get_db_connection()
@@ -37,7 +37,7 @@ def modificar_comisaria(id):
     conn.close()
     return jsonify({'mensaje': 'Comisaría modificada'})
 
-@comisaria_bp.route('/<int:id>', methods=['DELETE'])
+@comisaria_bp.route('/comisaria/<int:id>', methods=['DELETE'])
 def eliminar_comisaria(id):
     conn = get_db_connection()
     cursor = conn.cursor()

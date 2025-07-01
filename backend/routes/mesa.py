@@ -3,80 +3,129 @@ from db import get_db_connection
 
 mesa_bp = Blueprint("mesa", __name__)
 
-@mesa_bp.route("/", methods=["GET"])
-def get_mesa_empleado():
-    ci = request.args.get("ci")
-    fecha = request.args.get("fecha")
-    if not (ci and fecha):
-        return jsonify({"error": "Faltan parámetros: ci o fecha"}), 400
-
+@mesa_bp.route('/<int:num>/<int:id_circuito>/<int:id_eleccion>', methods=['PUT'])
+def modificar_mesa(num, id_circuito, id_eleccion):
+    data = request.json
     conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True, buffered=True)  # <- BUFFERED agregado
-
+    cursor = conn.cursor()
     try:
-        # Buscar el id de la elección por fecha
-        cursor.execute("SELECT id FROM eleccion WHERE fecha = %s;", (fecha,))
-        eleccion = cursor.fetchone()
-        if not eleccion:
-            return jsonify({"error": "No se encontró una elección para esa fecha"}), 404
-
-        id_eleccion = eleccion["id"]
-
-        # Buscar la mesa del empleado público para esa elección
-        cursor.execute("""
-            SELECT m.num, m.id_circuito, m.id_eleccion
-            FROM empleado_Publico ep
-            JOIN mesa m ON ep.num_mesa = m.num
-            WHERE ep.ci_ciudadano = %s AND m.id_eleccion = %s;
-        """, (ci, id_eleccion))
-        mesa = cursor.fetchone()
-
-        if mesa:
-            return jsonify(mesa)
-        return jsonify({"error": "No se encontró mesa para ese empleado público y elección"}), 404
+        cursor.execute("UPDATE mesa SET id_circuito = %s, id_eleccion = %s WHERE num = %s AND id_circuito = %s AND id_eleccion = %s",
+                       (data['id_circuito'], data['id_eleccion'], num, id_circuito, id_eleccion))
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Mesa no encontrada'}), 404
+        conn.commit()
+        return jsonify({'mensaje': 'Mesa modificada'})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': f'Error modificando mesa: {str(e)}'}), 400
     finally:
         cursor.close()
         conn.close()
 
-@mesa_bp.route("/info", methods=["GET"])
-def get_mesa_info():
-    num_mesa = request.args.get("num_mesa")
-    fecha = request.args.get("fecha")
+@mesa_bp.route('/<int:num>/<int:id_circuito>/<int:id_eleccion>', methods=['DELETE'])
+def eliminar_mesa(num, id_circuito, id_eleccion):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("DELETE FROM mesa WHERE num = %s AND id_circuito = %s AND id_eleccion = %s", 
+                       (num, id_circuito, id_eleccion))
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Mesa no encontrada'}), 404
+        conn.commit()
+        return jsonify({'mensaje': 'Mesa eliminada'})
+    except Exception as e:
+        return jsonify({'error': f'Error eliminando mesa: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
+@mesa_bp.route('/<int:num_mesa>/votos_normales/<int:id_eleccion>', methods=['GET'])
+def get_votos_normales(num_mesa, id_eleccion):
+    fecha = request.args.get('fecha')
     
-    if not (num_mesa and fecha):
-        return jsonify({"error": "Faltan parámetros: num_mesa o fecha"}), 400
+    
+    if not fecha:
+        return jsonify({"error": "Falta el parámetro 'fecha'"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True, buffered=True)
 
     try:
-        # Buscar el id de la elección por fecha
-        cursor.execute("SELECT id FROM eleccion WHERE fecha = %s;", (fecha,))
-        eleccion = cursor.fetchone()
-        if not eleccion:
-            return jsonify({"error": "No se encontró una elección para esa fecha"}), 404
-
-        id_eleccion = eleccion["id"]
-
-        # Obtener información de la mesa y circuito
+        # Verificar que la mesa existe y obtener su circuito
         cursor.execute("""
-            SELECT m.num as num_mesa, m.id_circuito, c.num as num_circuito,
-                   (SELECT COUNT(*) FROM asignado a 
-                    WHERE a.id_circuito = m.id_circuito 
-                    AND a.id_eleccion = m.id_eleccion) as total_votantes
-            FROM mesa m
-            JOIN circuito c ON m.id_circuito = c.id
-            WHERE m.num = %s AND m.id_eleccion = %s;
+            SELECT m.num, m.id_circuito, m.id_eleccion
+            FROM mesa m 
+            WHERE m.num = %s AND m.id_eleccion = %s
         """, (num_mesa, id_eleccion))
         
         mesa_info = cursor.fetchone()
-        if mesa_info:
-            return jsonify(mesa_info)
-        return jsonify({"error": "No se encontró información para esa mesa y elección"}), 404
+        print(f"Mesa encontrada: {mesa_info}")
+        
+        if not mesa_info:
+            return jsonify({"error": f"Mesa {num_mesa} no encontrada para la elección {id_eleccion}"}), 404
+
+        id_circuito = mesa_info['id_circuito']
+
+        # Verificar el tipo de elección
+        cursor.execute("""SELECT id_tipo_eleccion
+                       FROM eleccion 
+                       WHERE id = %s
+                       """, (id_eleccion,))
+        
+        eleccion = cursor.fetchone()
+        print(f"Elección encontrada: {eleccion}")
+        
+        if not eleccion:
+            return jsonify({"error": "Elección no encontrada"}), 404
+            
+        tipo_eleccion = eleccion['id_tipo_eleccion']
+        print(f"Tipo de elección: {tipo_eleccion}")
+
+        # Verificar si hay votos para este circuito y elección
+        cursor.execute("""
+            SELECT COUNT(*) as total_votos
+            FROM voto v
+            WHERE v.id_circuito = %s AND v.id_eleccion = %s
+        """, (id_circuito, id_eleccion))
+        
+        total_votos_check = cursor.fetchone()
+        print(f"Total votos en el circuito: {total_votos_check}")
+        
+        if total_votos_check['total_votos'] == 0:
+            return jsonify([])  # Retornar array vacío en lugar de error
+        
+        if tipo_eleccion == 3:  # Plebiscito
+            cursor.execute("""
+                SELECT pp.valor, COUNT(*) AS total_votos
+                FROM voto v
+                JOIN voto_normal vn ON v.id = vn.id_voto
+                JOIN voto_elige_papeleta vep ON vn.id_voto = vep.id_voto_normal
+                JOIN papeleta_plebiscito pp ON vep.id_papeleta = pp.id_papeleta 
+                    AND vep.id_eleccion = pp.id_eleccion
+                WHERE v.id_circuito = %s AND v.id_eleccion = %s
+                GROUP BY pp.valor
+            """, (id_circuito, id_eleccion))
+        else:  # Otras elecciones (con listas y partidos)
+            cursor.execute("""
+                SELECT l.id_papeleta as lista_id, p.nombre as partido, COUNT(*) AS total_votos
+                FROM voto v
+                JOIN voto_normal vn ON v.id = vn.id_voto
+                JOIN voto_elige_papeleta vep ON vn.id_voto = vep.id_voto_normal
+                JOIN lista l ON vep.id_papeleta = l.id_papeleta AND vep.id_eleccion = l.id_eleccion
+                JOIN partido p ON l.id_partido = p.id
+                WHERE v.id_circuito = %s AND v.id_eleccion = %s
+                GROUP BY l.id_papeleta, p.nombre
+            """, (id_circuito, id_eleccion))
+
+        votos_normales = cursor.fetchall()
+       
+        
+        return jsonify(votos_normales)
+        
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Error interno: {str(e)}"}), 500
     finally:
         cursor.close()
         conn.close()

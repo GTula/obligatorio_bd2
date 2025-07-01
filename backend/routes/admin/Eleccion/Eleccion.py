@@ -15,7 +15,7 @@ def listar_elecciones():
     conn.close()
     return jsonify(data)
 
-@eleccion_bp.route('', methods=['POST'])
+@eleccion_bp.route('/eleccion', methods=['POST'])
 def crear_eleccion():
     data = request.json
     conn = get_db_connection()
@@ -27,7 +27,7 @@ def crear_eleccion():
     conn.close()
     return jsonify({'mensaje': 'Elección creada'})
 
-@eleccion_bp.route('/<int:id>', methods=['PUT'])
+@eleccion_bp.route('/eleccion/<int:id>', methods=['PUT'])
 def modificar_eleccion(id):
     data = request.json
     conn = get_db_connection()
@@ -39,7 +39,7 @@ def modificar_eleccion(id):
     conn.close()
     return jsonify({'mensaje': 'Elección modificada'})
 
-@eleccion_bp.route('/<int:id>', methods=['DELETE'])
+@eleccion_bp.route('/eleccion/<int:id>', methods=['DELETE'])
 def eliminar_eleccion(id):
     conn = get_db_connection()
     cursor = conn.cursor()

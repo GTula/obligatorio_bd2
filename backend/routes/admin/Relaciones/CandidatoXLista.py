@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
 
-candidato_por_lista_bp = Blueprint('candidato_por_lista', __name__)
+candidato_por_lista_bp = Blueprint('candidato-por-lista', __name__)
 
 
 # -------------------- Candidato por Lista --------------------
@@ -16,7 +16,7 @@ def listar_candidatos_por_lista():
     conn.close()
     return jsonify(data)
 
-@candidato_por_lista_bp.route('', methods=['POST'])
+@candidato_por_lista_bp.route('/candidato-por-lista', methods=['POST'])
 def crear_candidato_por_lista():
     data = request.json
     conn = get_db_connection()
@@ -28,7 +28,7 @@ def crear_candidato_por_lista():
     conn.close()
     return jsonify({'mensaje': 'Candidato por lista creado'})
 
-@candidato_por_lista_bp.route('/<int:id_papeleta>/<int:id_eleccion>/<id_candidato>', methods=['PUT'])
+@candidato_por_lista_bp.route('/candidato-por-lista/<int:id_papeleta>/<int:id_eleccion>/<id_candidato>', methods=['PUT'])
 def modificar_candidato_por_lista(id_papeleta, id_eleccion, id_candidato):
     data = request.json
     conn = get_db_connection()
@@ -40,7 +40,7 @@ def modificar_candidato_por_lista(id_papeleta, id_eleccion, id_candidato):
     conn.close()
     return jsonify({'mensaje': 'Candidato por lista modificado'})
 
-@candidato_por_lista_bp.route('/<int:id_papeleta>/<int:id_eleccion>/<id_candidato>', methods=['DELETE'])
+@candidato_por_lista_bp.route('/candidato-por-lista/<int:id_papeleta>/<int:id_eleccion>/<id_candidato>', methods=['DELETE'])
 def eliminar_candidato_por_lista(id_papeleta, id_eleccion, id_candidato):
     conn = get_db_connection()
     cursor = conn.cursor()

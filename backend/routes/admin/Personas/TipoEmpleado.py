@@ -2,7 +2,7 @@
 from flask import Blueprint, request, jsonify
 from db import get_db_connection
 
-tipo_empleado_bp = Blueprint('tipo_empleado', __name__)
+tipo_empleado_bp = Blueprint('tipo-empleado', __name__)
 
 
 # -------------------- Tipo Empleado --------------------
@@ -16,7 +16,7 @@ def listar_tipos_empleado():
     conn.close()
     return jsonify(data)
 
-@tipo_empleado_bp.route('', methods=['POST'])
+@tipo_empleado_bp.route('/tipo-empleado', methods=['POST'])
 def crear_tipo_empleado():
     data = request.json
     conn = get_db_connection()
@@ -27,7 +27,7 @@ def crear_tipo_empleado():
     conn.close()
     return jsonify({'mensaje': 'Tipo de empleado creado'})
 
-@tipo_empleado_bp.route('/<int:id>', methods=['PUT'])
+@tipo_empleado_bp.route('/tipo-empleado/<int:id>', methods=['PUT'])
 def modificar_tipo_empleado(id):
     data = request.json
     conn = get_db_connection()
@@ -38,7 +38,7 @@ def modificar_tipo_empleado(id):
     conn.close()
     return jsonify({'mensaje': 'Tipo de empleado modificado'})
 
-@tipo_empleado_bp.route('/<int:id>', methods=['DELETE'])
+@tipo_empleado_bp.route('/tipo-empleado/<int:id>', methods=['DELETE'])
 def eliminar_tipo_empleado(id):
     conn = get_db_connection()
     cursor = conn.cursor()

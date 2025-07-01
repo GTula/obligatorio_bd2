@@ -5,7 +5,7 @@ import LoginMesa from './pages/LoginMesa';
 import HomeMesa from './pages/HomeMesa';
 import LoginVotante from './pages/LoginVotante';
 import PantallaVotacion from './pages/PantallaVotacion';
-import VotantesMesa from './pages/VotantesMesa';
+import Votantes from './pages/VotantesMesa';
 import Resultados from './pages/Resultados';
 import LoginAdmin from './pages/LoginAdmin';
 import AdminPanel from './pages/AdminPanel';
@@ -38,7 +38,7 @@ function App() {
                   isVotanteAuthenticated ? <PantallaVotacion /> : <Navigate to="/login-votante" />
                 } />
                 <Route path="/votantes" element={
-                  isMesaAuthenticated ? <VotantesMesa /> : <Navigate to="/login-mesa" />
+                  isMesaAuthenticated ? <Votantes /> : <Navigate to="/login-mesa" />
                 } />
                 <Route path="/resultados" element={
                   isMesaAuthenticated ? <Resultados /> : <Navigate to="/login-mesa" />

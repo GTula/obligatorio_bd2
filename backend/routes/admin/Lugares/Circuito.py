@@ -16,7 +16,7 @@ def listar_circuitos():
     conn.close()
     return jsonify(data)
 
-@circuito_bp.route('', methods=['POST'])
+@circuito_bp.route('/circuito', methods=['POST'])
 def crear_circuito():
     data = request.json
     conn = get_db_connection()
@@ -28,19 +28,25 @@ def crear_circuito():
     conn.close()
     return jsonify({'mensaje': 'Circuito creado'})
 
-@circuito_bp.route('/<int:id>/<int:id_eleccion>', methods=['PUT'])
+@circuito_bp.route('/circuito/<int:id>/<int:id_eleccion>', methods=['PUT'])
 def modificar_circuito(id, id_eleccion):
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("UPDATE circuito SET accesible = %s, id_establecimiento = %s WHERE id = %s AND id_eleccion = %s",
-                   (data['accesible'], data['id_establecimiento'], id, id_eleccion))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Circuito modificado'})
+    try:
+        cursor.execute("UPDATE circuito SET accesible = %s, id_establecimiento = %s WHERE id = %s AND id_eleccion = %s",
+                       (data['accesible'], data['id_establecimiento'], id, id_eleccion))
+        if cursor.rowcount == 0:
+            return jsonify({'error': 'Circuito no encontrado'}), 404
+        conn.commit()
+        return jsonify({'mensaje': 'Circuito modificado'})
+    except Exception as e:
+        return jsonify({'error': f'Error modificando circuito: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
-@circuito_bp.route('/<int:id>/<int:id_eleccion>', methods=['DELETE'])
+@circuito_bp.route('/circuito/<int:id>/<int:id_eleccion>', methods=['DELETE'])
 def eliminar_circuito(id, id_eleccion):
     conn = get_db_connection()
     cursor = conn.cursor()

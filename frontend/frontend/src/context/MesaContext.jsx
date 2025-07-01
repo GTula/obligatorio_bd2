@@ -1,41 +1,64 @@
-// MesaContext.jsx
 import React, { createContext, useContext, useState } from 'react';
 
 const MesaContext = createContext();
 
-export function MesaProvider({ children }) {
-  const [mesaAbierta, setMesaAbierta] = useState(false);
-  const [mesaCerrada, setMesaCerrada] = useState(false);
+export const useMesa = () => {
+    const context = useContext(MesaContext);
+    if (!context) {
+        throw new Error('useMesa debe usarse dentro de MesaProvider');
+    }
+    return context;
+};
 
-  const abrirMesa = () => {
-    setMesaAbierta(true);
-    setMesaCerrada(false);
-  };
+export const MesaProvider = ({ children }) => {
+    const [mesaAbierta, setMesaAbierta] = useState(false);
+    const [mesaCerrada, setMesaCerrada] = useState(false);
+    const [mesaData, setMesaData] = useState({
+        numMesa: null,
+        idEleccion: null,
+        idCircuito: null,
+        fecha: null
+    });
 
-  const cerrarMesa = () => {
-    setMesaAbierta(false);
-    setMesaCerrada(true);
-  };
+    const abrirMesa = () => {
+        setMesaAbierta(true);
+        setMesaCerrada(false);
+    };
 
-  const puedeVerVotantes = mesaAbierta;
-  const puedeVerResultados = mesaCerrada;
+    const cerrarMesa = (data) => {
+        console.log('Cerrando mesa con datos:', data);
+        setMesaData(data);
+        setMesaAbierta(false);
+        setMesaCerrada(true);
+    };
 
-  return (
-    <MesaContext.Provider
-      value={{
-        mesaAbierta,
-        mesaCerrada,
-        abrirMesa,
-        cerrarMesa,
-        puedeVerVotantes,
-        puedeVerResultados,
-      }}
-    >
-      {children}
-    </MesaContext.Provider>
-  );
-}
+    const reiniciarMesa = () => {
+        setMesaAbierta(false);
+        setMesaCerrada(false);
+        setMesaData({
+            numMesa: null,
+            idEleccion: null,
+            idCircuito: null,
+            fecha: null
+        });
+    };
 
-export function useMesa() {
-  return useContext(MesaContext);
-}
+    // Lógica para determinar qué puede ver el usuario
+    const puedeVerVotantes = mesaAbierta;
+    const puedeVerResultados = mesaCerrada;
+
+    return (
+        <MesaContext.Provider value={{
+            mesaAbierta,
+            mesaCerrada,
+            mesaData,
+            abrirMesa,
+            cerrarMesa,
+            reiniciarMesa,
+            puedeVerVotantes,
+            puedeVerResultados
+        }}>
+            {children}
+        </MesaContext.Provider>
+    );
+};

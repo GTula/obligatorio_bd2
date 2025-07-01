@@ -1,5 +1,9 @@
-# -------------------- Voto --------------------
-@admin_bp.route('/votos', methods=['GET'])
+from flask import Blueprint, request, jsonify
+from db import get_db_connection
+
+voto_bp = Blueprint('', __name__)
+
+@voto_bp.route('/votos', methods=['GET'])
 def listar_votos():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
@@ -9,7 +13,7 @@ def listar_votos():
     conn.close()
     return jsonify(data)
 
-@admin_bp.route('/voto', methods=['POST'])
+@voto_bp.route('/voto', methods=['POST'])
 def crear_voto():
     data = request.json
     conn = get_db_connection()
@@ -21,7 +25,7 @@ def crear_voto():
     conn.close()
     return jsonify({'mensaje': 'Voto creado'})
 
-@admin_bp.route('/voto/<int:id>', methods=['PUT'])
+@voto_bp.route('/voto/<int:id>', methods=['PUT'])
 def modificar_voto(id):
     data = request.json
     conn = get_db_connection()
@@ -33,7 +37,7 @@ def modificar_voto(id):
     conn.close()
     return jsonify({'mensaje': 'Voto modificado'})
 
-@admin_bp.route('/voto/<int:id>', methods=['DELETE'])
+@voto_bp.route('/voto/<int:id>', methods=['DELETE'])
 def eliminar_voto(id):
     conn = get_db_connection()
     cursor = conn.cursor()

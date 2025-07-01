@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Mesa.css';
 import { useMesa } from '../context/MesaContext';
+import escudo from '../assets/escudo_uruguay.png';
 
 function HomeMesa() {
   const [modalOpen, setModalOpen] = useState(false);
@@ -18,6 +19,13 @@ function HomeMesa() {
     puedeVerResultados,
   } = useMesa();
 
+  // Estados para los datos de la mesa
+  const [mesaData, setMesaData] = useState({
+    numMesa: null,
+    idEleccion: null,
+    fecha: null
+  });
+
   useEffect(() => {
     const fetchCircuitoInfo = async () => {
       const mesaId = localStorage.getItem('mesa_id');
@@ -28,6 +36,13 @@ function HomeMesa() {
         return;
       }
 
+      // Actualizar mesaData con la información disponible
+      setMesaData(prev => ({
+        ...prev,
+        numMesa: parseInt(mesaId),
+        fecha: fecha
+      }));
+
       console.log('Fetching circuito info for:', { mesaId, fecha });
 
       try {
@@ -37,6 +52,11 @@ function HomeMesa() {
         
         if (response.ok) {
           setCircuitoInfo(data);
+          // Actualizar mesaData con el ID del circuito
+          setMesaData(prev => ({
+            ...prev,
+            idCircuito: data.ID_Circuito
+          }));
         } else {
           console.error('Error fetching circuito info:', data.error);
         }
@@ -46,6 +66,17 @@ function HomeMesa() {
     };
 
     fetchCircuitoInfo();
+  }, []);
+
+  // Obtener ID de elección (puedes ajustar esto según tu lógica)
+  useEffect(() => {
+    // Aquí deberías obtener el ID de elección según tu lógica de negocio
+    // Por ejemplo, desde localStorage, una API, o props
+    const idEleccion = localStorage.getItem('id_eleccion') || 1; // Valor por defecto
+    setMesaData(prev => ({
+      ...prev,
+      idEleccion: parseInt(idEleccion)
+    }));
   }, []);
 
   const abrirModal = (tipo) => {
@@ -58,16 +89,27 @@ function HomeMesa() {
   };
 
   const confirmarAccion = () => {
-    if (accion === 'abrir') abrirMesa();
-    else if (accion === 'cerrar') cerrarMesa();
+    if (accion === 'abrir') {
+      abrirMesa();
+    } else if (accion === 'cerrar') {
+      // Pasar los datos de la mesa al contexto antes de cerrar
+      cerrarMesa(mesaData);
+    }
     cerrarModal();
+  };
+
+  // Función para navegar a resultados (solo si la mesa está cerrada)
+  const navegarAResultados = () => {
+    if (puedeVerResultados && mesaCerrada) {
+      navigate('/resultados');
+    }
   };
 
   return (
     <div className="container">
       <div className="sidebar">
         <div className="logo">
-          <img src="..\pictures\Coat_of_arms_of_Uruguay.svg.png" alt="Logo" />
+          <img src={escudo} alt="Escudo de Uruguay" />
           <h3>
             CORTE ELECTORAL<br />
             <small>República Oriental del Uruguay</small>
@@ -84,7 +126,7 @@ function HomeMesa() {
             </li>
             <li
               className={puedeVerResultados ? 'activo' : 'inactivo'}
-              onClick={() => puedeVerResultados && navigate('/resultados')}
+              onClick={navegarAResultados}
             >
               <span className="circle"></span> Ver Resultados
             </li>
@@ -94,17 +136,26 @@ function HomeMesa() {
           <p><strong>Estado de la mesa</strong><br />
             {mesaAbierta ? 'Abierta' : mesaCerrada ? 'Cerrada' : 'Sin iniciar'}
           </p>
-          <button className="btn blue" disabled={mesaAbierta || mesaCerrada} onClick={() => abrirModal('abrir')}>Abrir Mesa</button>
-          <button className="btn red" disabled={!mesaAbierta || mesaCerrada} onClick={() => abrirModal('cerrar')}>Cerrar Mesa</button>
+          <button 
+            className="btn blue" 
+            disabled={mesaAbierta || mesaCerrada} 
+            onClick={() => abrirModal('abrir')}
+          >
+            Abrir Mesa
+          </button>
+          <button 
+            className="btn red" 
+            disabled={!mesaAbierta || mesaCerrada} 
+            onClick={() => abrirModal('cerrar')}
+          >
+            Cerrar Mesa
+          </button>
         </div>
-        <footer>
-          <p>Desarrollado por Soft<br /><small>Contacto: +598 91234567</small></p>
-        </footer>
       </div>
 
       <div className="main">
         <h2>Bienvenido al administrador de la comisión receptora de votos</h2>
-        <h3>Mesa Nº {localStorage.getItem('mesa_id') || 'Cargando...'}</h3>
+        <h3>Mesa Nº {mesaData.numMesa || 'Cargando...'}</h3>
         <h4>Circuito Nº {circuitoInfo?.ID_Circuito || 'Cargando...'}</h4>
 
         <section className="stats-section">
@@ -127,6 +178,15 @@ function HomeMesa() {
             <p>8h 30min</p>
           </div>
         </section>
+
+        {/* Información de debug (puedes remover en producción) */}
+        <section className="debug-info" style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f0f0f0', fontSize: '12px' }}>
+          <h4>Información de Mesa (Debug)</h4>
+          <p>Mesa: {mesaData.numMesa}</p>
+          <p>Circuito: {mesaData.idCircuito}</p>
+          <p>Elección: {mesaData.idEleccion}</p>
+          <p>Fecha: {mesaData.fecha}</p>
+        </section>
       </div>
 
       {modalOpen && (
@@ -134,6 +194,11 @@ function HomeMesa() {
           <div className="modal-content">
             <span className="icon">ℹ️</span>
             <p>¿Estás seguro que deseas {accion === 'abrir' ? 'abrir' : 'cerrar'} la mesa?</p>
+            {accion === 'cerrar' && (
+              <div className="mesa-info">
+                <p><small>Se guardarán los datos de la mesa para consultar resultados</small></p>
+              </div>
+            )}
             <div className="modal-buttons">
               <button className="btn red" onClick={cerrarModal}>Cancelar</button>
               <button className="btn green" onClick={confirmarAccion}>Aceptar</button>
