@@ -4,7 +4,7 @@ export class ResultadosService {
     static async getVotosNormales(numMesa, idEleccion, fecha) {
         try {
             const response = await fetch(
-                `${API_BASE}/mesa/${numMesa}/votos_normales/${idEleccion}?fecha=${fecha}`
+                `${API_BASE}/votos/${numMesa}/votos_normales/${idEleccion}?fecha=${fecha}`
             );
 
             if (!response.ok) {

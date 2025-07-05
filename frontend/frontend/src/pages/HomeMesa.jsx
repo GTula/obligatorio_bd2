@@ -27,46 +27,61 @@ function HomeMesa() {
   });
 
   useEffect(() => {
-    const fetchCircuitoInfo = async () => {
-      const mesaId = localStorage.getItem('mesa_id');
-      const fecha = localStorage.getItem('fecha_eleccion');
+  const fetchCircuitoInfo = async () => {
+    const mesaId = localStorage.getItem('mesa_id');
+    const fecha = localStorage.getItem('fecha_eleccion');
+    
+    if (!mesaId || !fecha) {
+      console.error('❌ No mesa information found');
+      return;
+    }
+
+    console.log('🔍 Fetching circuito info for:', { mesaId, fecha });
+
+    try {
+      const response = await fetch(`http://127.0.0.1:5000/api/circuito/por-mesa?num_mesa=${mesaId}&fecha=${fecha}`);
+      const data = await response.json();
+      console.log('✅ Circuito info response:', data);
       
-      if (!mesaId || !fecha) {
-        console.error('No mesa information found');
-        return;
-      }
-
-      // Actualizar mesaData con la información disponible
-      setMesaData(prev => ({
-        ...prev,
-        numMesa: parseInt(mesaId),
-        fecha: fecha
-      }));
-
-      console.log('Fetching circuito info for:', { mesaId, fecha });
-
-      try {
-        const response = await fetch(`http://127.0.0.1:5000/api/circuito/por-mesa?num_mesa=${mesaId}&fecha=${fecha}`);
-        const data = await response.json();
-        console.log('Circuito info response:', data);
+      if (response.ok) {
+        setCircuitoInfo(data);
         
-        if (response.ok) {
-          setCircuitoInfo(data);
-          // Actualizar mesaData con el ID del circuito
-          setMesaData(prev => ({
-            ...prev,
-            idCircuito: data.ID_Circuito
-          }));
+        // IMPORTANTE: Asegurar que guardamos el ID del circuito correctamente
+        const idCircuito = data.ID_Circuito || data.id_circuito || data.idCircuito;
+        const idEleccion = data.ID_Eleccion || data.id_eleccion || data.idEleccion || 1;
+        
+        console.log('🔍 IDs extraídos:', { idCircuito, idEleccion });
+        
+        if (idCircuito) {
+          localStorage.setItem('id_circuito', idCircuito.toString());
+          localStorage.setItem('id_eleccion', idEleccion.toString());
+          
+          console.log('✅ Guardado en localStorage:', {
+            id_circuito: localStorage.getItem('id_circuito'),
+            id_eleccion: localStorage.getItem('id_eleccion')
+          });
         } else {
-          console.error('Error fetching circuito info:', data.error);
+          console.error('❌ No se pudo obtener ID_Circuito de la respuesta');
         }
-      } catch (error) {
-        console.error('Error fetching circuito info:', error);
+        
+        // Actualizar mesaData
+        setMesaData(prev => ({
+          ...prev,
+          numMesa: parseInt(mesaId),
+          idCircuito: idCircuito,
+          idEleccion: idEleccion,
+          fecha: fecha
+        }));
+      } else {
+        console.error('❌ Error fetching circuito info:', data.error);
       }
-    };
+    } catch (error) {
+      console.error('❌ Error fetching circuito info:', error);
+    }
+  };
 
-    fetchCircuitoInfo();
-  }, []);
+  fetchCircuitoInfo();
+}, []);
 
   // Obtener ID de elección (puedes ajustar esto según tu lógica)
   useEffect(() => {

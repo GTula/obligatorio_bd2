@@ -8,6 +8,7 @@ from routes.eleccion import eleccion_bp
 from routes.admin.loginAdmin import login_admin_bp
 from routes.admin.admin import admin_bp
 from routes.votantes import votantes_bp
+from routes.votos_circuito import votos_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -15,6 +16,7 @@ CORS(app)
 app.register_blueprint(ciudadanos_bp, url_prefix="/api/ciudadanos")
 app.register_blueprint(circuito_bp, url_prefix="/api/circuito")
 app.register_blueprint(mesa_bp, url_prefix="/api/mesa")
+app.register_blueprint(votos_bp, url_prefix="/api/votos")
 app.register_blueprint(login_presidente_bp, url_prefix="/api/login_presidente")
 app.register_blueprint(eleccion_bp, url_prefix="/api/eleccion")
 app.register_blueprint(login_admin_bp, url_prefix="/api/login_admin")

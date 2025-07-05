@@ -34,9 +34,7 @@ function App() {
                   isMesaAuthenticated ? <HomeMesa /> : <Navigate to="/login-mesa" />
                 } />
                 <Route path="/login-votante" element={<LoginVotante />} />
-                <Route path="/votar" element={
-                  isVotanteAuthenticated ? <PantallaVotacion /> : <Navigate to="/login-votante" />
-                } />
+                <Route path="/votar" element={<PantallaVotacion />}/>
                 <Route path="/votantes" element={
                   isMesaAuthenticated ? <Votantes /> : <Navigate to="/login-mesa" />
                 } />

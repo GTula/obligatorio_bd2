@@ -20,19 +20,26 @@ export const MesaProvider = ({ children }) => {
         fecha: null
     });
 
+    // Modo desarrollo para resetear estado
+    const MODO_DESARROLLO = process.env.NODE_ENV === 'development';
+
     const abrirMesa = () => {
+        console.log('🟢 Mesa abierta');
         setMesaAbierta(true);
         setMesaCerrada(false);
     };
 
     const cerrarMesa = (data) => {
-        console.log('Cerrando mesa con datos:', data);
-        setMesaData(data);
+        console.log('🔴 Mesa cerrada con datos:', data);
+        if (data) {
+            setMesaData(data);
+        }
         setMesaAbierta(false);
         setMesaCerrada(true);
     };
 
-    const reiniciarMesa = () => {
+    const resetearMesa = () => {
+        console.log('🔄 Mesa reseteada');
         setMesaAbierta(false);
         setMesaCerrada(false);
         setMesaData({
@@ -54,9 +61,10 @@ export const MesaProvider = ({ children }) => {
             mesaData,
             abrirMesa,
             cerrarMesa,
-            reiniciarMesa,
+            resetearMesa,
             puedeVerVotantes,
-            puedeVerResultados
+            puedeVerResultados,
+            MODO_DESARROLLO
         }}>
             {children}
         </MesaContext.Provider>

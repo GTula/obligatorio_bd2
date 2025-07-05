@@ -2,10 +2,26 @@ const API_BASE = 'http://127.0.0.1:5000/api';
 
 export class VotantesService {
     static async getVotantesHabilitados(idCircuito, idEleccion) {
+        // Debug temporal
+        console.log('🔍 VotantesService.getVotantesHabilitados llamado con:', {
+            idCircuito,
+            idEleccion,
+            tipos: {
+                idCircuito: typeof idCircuito,
+                idEleccion: typeof idEleccion
+            }
+        });
+        
+        // Validar parámetros
+        if (!idCircuito || !idEleccion || isNaN(idCircuito) || isNaN(idEleccion)) {
+            throw new Error(`Parámetros inválidos: idCircuito=${idCircuito}, idEleccion=${idEleccion}`);
+        }
+        
         try {
-            const response = await fetch(
-                `${API_BASE}/votantes/circuito/${idCircuito}/eleccion/${idEleccion}`
-            );
+            const url = `${API_BASE}/votantes/circuito/${idCircuito}/eleccion/${idEleccion}`;
+            console.log('🔍 Haciendo request a:', url);
+            
+            const response = await fetch(url);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -17,7 +33,7 @@ export class VotantesService {
             throw error;
         }
     }
-
+    
     static async buscarVotante(serie, numero, idCircuito, idEleccion) {
         try {
             const params = new URLSearchParams({

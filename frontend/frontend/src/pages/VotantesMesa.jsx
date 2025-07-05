@@ -23,38 +23,64 @@ function Votantes() {
   const [buscando, setBuscando] = useState(false);
   
   // Estados para filtros
-  const [filtro, setFiltro] = useState('todos'); // todos, votaron, pendientes
+  const [filtro, setFiltro] = useState('todos');
   const [busquedaTexto, setBusquedaTexto] = useState('');
   
   // Datos de la mesa
   const [mesaData, setMesaData] = useState({
     numMesa: null,
     idCircuito: null,
-    idEleccion: null
+    idEleccion: null,
+    fecha: null
   });
 
   useEffect(() => {
-    // Verificar que la mesa esté abierta
-    if (!mesaAbierta) {
-      navigate('/mesa');
-      return;
-    }
+  // Verificar que la mesa esté abierta
+  if (!mesaAbierta) {
+    navigate('/mesa');
+    return;
+  }
 
-    // Obtener datos de la mesa
-    const mesaId = localStorage.getItem('mesa_id');
-    const idEleccion = localStorage.getItem('id_eleccion') || 1;
-    
-    // Obtener idCircuito del contexto o localStorage
-    const idCircuito = localStorage.getItem('id_circuito') || 1;
-    
-    setMesaData({
-      numMesa: parseInt(mesaId),
-      idCircuito: parseInt(idCircuito),
-      idEleccion: parseInt(idEleccion)
-    });
+  // Obtener datos de la mesa con fallbacks
+  const mesaId = localStorage.getItem('mesa_id');
+  const idEleccion = localStorage.getItem('id_eleccion') || '1';
+  const idCircuito = localStorage.getItem('id_circuito');
+  
+  console.log('🔍 VotantesMesa - Datos obtenidos:', {
+    mesaId,
+    idEleccion,
+    idCircuito,
+    localStorage_completo: { ...localStorage }
+  });
+  
+  // Validar que tenemos todos los datos necesarios
+  if (!mesaId || !idCircuito) {
+    console.error('❌ Faltan datos de la mesa:', { mesaId, idCircuito });
+    setError('Faltan datos de la mesa. Vuelva a la página principal.');
+    setLoading(false);
+    return;
+  }
+  
+  const mesaDataParsed = {
+    numMesa: parseInt(mesaId),
+    idCircuito: parseInt(idCircuito),
+    idEleccion: parseInt(idEleccion)
+  };
+  
+  console.log('✅ Mesa data parseada:', mesaDataParsed);
+  
+  // Verificar que los valores no sean NaN
+  if (isNaN(mesaDataParsed.idCircuito) || isNaN(mesaDataParsed.idEleccion)) {
+    console.error('❌ IDs inválidos:', mesaDataParsed);
+    setError('Datos de mesa inválidos. Vuelva a la página principal.');
+    setLoading(false);
+    return;
+  }
+  
+  setMesaData(mesaDataParsed);
+  cargarVotantes(mesaDataParsed.idCircuito, mesaDataParsed.idEleccion);
+}, [mesaAbierta, navigate]);
 
-    cargarVotantes(parseInt(idCircuito), parseInt(idEleccion));
-  }, [mesaAbierta, navigate]);
 
   const cargarVotantes = async (idCircuito, idEleccion) => {
     try {
@@ -70,6 +96,30 @@ function Votantes() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Función corregida para abrir tótem
+  const abrirTotem = () => {
+    if (!mesaData.numMesa || !mesaData.idCircuito || !mesaData.idEleccion) {
+      alert('Faltan datos de la mesa. Intente recargar la página.');
+      return;
+    }
+
+    // Construir URL con parámetros
+    const params = new URLSearchParams({
+      numMesa: mesaData.numMesa,
+      idCircuito: mesaData.idCircuito,
+      idEleccion: mesaData.idEleccion,
+      fecha: mesaData.fecha || ''
+    });
+
+    const urlTotem = `/votar?${params.toString()}`;
+    
+    console.log('🗳️ Abriendo tótem con URL:', urlTotem);
+    console.log('Datos enviados:', mesaData);
+    
+    // Abrir en nueva pestaña
+    window.open(urlTotem, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
   };
 
   const buscarVotante = async () => {
@@ -206,9 +256,21 @@ function Votantes() {
     <div className="votantes-container">
       <div className="votantes-header">
         <h2>Lista de Votantes - Mesa {mesaData.numMesa}</h2>
-        <button onClick={() => navigate('/mesa')} className="btn volver">
-          Volver
-        </button>
+        <div className="header-buttons">
+          <button onClick={abrirTotem} className="btn blue">
+            🗳️ Abrir Tótem de Votación
+          </button>
+          <button onClick={() => navigate('/mesa')} className="btn volver">
+            Volver
+          </button>
+        </div>
+      </div>
+
+      {/* Debug info */}
+      <div className="debug-info" style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f0f0', fontSize: '12px' }}>
+        <h4>Debug - Datos de la Mesa:</h4>
+        <p>Mesa: {mesaData.numMesa} | Circuito: {mesaData.idCircuito} | Elección: {mesaData.idEleccion} | Fecha: {mesaData.fecha}</p>
+        <p>URL Tótem: /votar?numMesa={mesaData.numMesa}&idCircuito={mesaData.idCircuito}&idEleccion={mesaData.idEleccion}&fecha={mesaData.fecha}</p>
       </div>
 
       {/* Estadísticas */}
@@ -337,7 +399,7 @@ function Votantes() {
         <div className="votantes-grid">
           {votantesFiltrados.map((votante, index) => (
             <div key={index} className={`votante-card ${votante.ya_voto ? 'votado' : 'pendiente'}`}>
-              <div className="votante-header">
+                            <div className="votante-header">
                 <h4>{votante.nombre} {votante.apellido}</h4>
                 <span className={`estado ${votante.ya_voto ? 'votado' : 'pendiente'}`}>
                   {votante.ya_voto ? '✓ Votó' : '○ Pendiente'}
@@ -383,3 +445,4 @@ function Votantes() {
 }
 
 export default Votantes;
+
