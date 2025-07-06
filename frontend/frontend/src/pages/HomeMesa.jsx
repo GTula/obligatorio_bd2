@@ -170,8 +170,6 @@ function HomeMesa() {
 
       <div className="main">
         <h2>Bienvenido al administrador de la comisión receptora de votos</h2>
-        <h3>Mesa Nº {mesaData.numMesa || 'Cargando...'}</h3>
-        <h4>Circuito Nº {circuitoInfo?.ID_Circuito || 'Cargando...'}</h4>
 
         <section className="stats-section">
           <div className="card">
@@ -194,14 +192,37 @@ function HomeMesa() {
           </div>
         </section>
 
-        {/* Información de debug (puedes remover en producción) */}
-        <section className="debug-info" style={{ marginTop: '20px', padding: '10px', backgroundColor: '#f0f0f0', fontSize: '12px' }}>
-          <h4>Información de Mesa (Debug)</h4>
-          <p>Mesa: {mesaData.numMesa}</p>
-          <p>Circuito: {mesaData.idCircuito}</p>
-          <p>Elección: {mesaData.idEleccion}</p>
-          <p>Fecha: {mesaData.fecha}</p>
+        {/* Información de la mesa - estilo coherente */}
+        <section className="debug-info">
+          <h4>Información de la Mesa</h4>
+          <div className="debug-info-grid">
+            <div className="debug-info-item mesa">
+              <div className="label">Mesa</div>
+              <div className={`value ${!mesaData.numMesa ? 'null' : ''}`}>
+                {mesaData.numMesa || 'Cargando...'}
+              </div>
+            </div>
+            <div className="debug-info-item circuito">
+              <div className="label">Circuito</div>
+              <div className={`value ${!mesaData.idCircuito ? 'null' : ''}`}>
+                {mesaData.idCircuito || 'Cargando...'}
+              </div>
+            </div>
+            <div className="debug-info-item eleccion">
+              <div className="label">Elección</div>
+              <div className={`value ${!mesaData.idEleccion ? 'null' : ''}`}>
+                {mesaData.idEleccion || 'Cargando...'}
+              </div>
+            </div>
+            <div className="debug-info-item fecha">
+              <div className="label">Fecha</div>
+              <div className={`value ${!mesaData.fecha ? 'null' : ''}`}>
+                {mesaData.fecha || 'Cargando...'}
+              </div>
+            </div>
+          </div>
         </section>
+
       </div>
 
       {modalOpen && (

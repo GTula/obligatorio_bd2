@@ -268,9 +268,9 @@ function Votantes() {
 
       {/* Debug info */}
       <div className="debug-info" style={{ marginBottom: '20px', padding: '10px', backgroundColor: '#f0f0f0', fontSize: '12px' }}>
-        <h4>Debug - Datos de la Mesa:</h4>
-        <p>Mesa: {mesaData.numMesa} | Circuito: {mesaData.idCircuito} | Elección: {mesaData.idEleccion} | Fecha: {mesaData.fecha}</p>
-        <p>URL Tótem: /votar?numMesa={mesaData.numMesa}&idCircuito={mesaData.idCircuito}&idEleccion={mesaData.idEleccion}&fecha={mesaData.fecha}</p>
+        <h4>Datos de la Mesa:</h4>
+        <p>Mesa: {mesaData.numMesa} | Circuito: {mesaData.idCircuito} | Elección: {mesaData.idEleccion} </p>
+        <p>URL Tótem: /votar?numMesa={mesaData.numMesa}&idCircuito={mesaData.idCircuito}&idEleccion={mesaData.idEleccion}</p>
       </div>
 
       {/* Estadísticas */}

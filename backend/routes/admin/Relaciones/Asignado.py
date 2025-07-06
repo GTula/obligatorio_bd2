@@ -21,10 +21,18 @@ def crear_asignado():
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO asignado (serie_credencial, numero_credencial, id_circuito, id_eleccion) VALUES (%s, %s, %s, %s)",
-                   (data['serie_credencial'], data['numero_credencial'], data['id_circuito'], data['id_eleccion']))
-    conn.commit()
+    cursor.execute("SELECT COUNT(*) FROM asignado WHERE serie_credencial = %s AND numero_credencial = %s AND id_eleccion = %s",
+                   (data['serie_credencial'], data['numero_credencial'], data['id_eleccion']))
+    count = cursor.fetchone()[0]
     cursor.close()
+    cursor1 = conn.cursor()
+    if count == 0:
+        cursor1.execute("INSERT INTO asignado (serie_credencial, numero_credencial, id_circuito, id_eleccion) VALUES (%s, %s, %s, %s)",
+                   (data['serie_credencial'], data['numero_credencial'], data['id_circuito'], data['id_eleccion']))
+    else:
+        return jsonify({'error': 'Ya existe una asignación con estos datos'}), 400
+    conn.commit()
+    cursor1.close()
     conn.close()
     return jsonify({'mensaje': 'Asignación creada'})
 
