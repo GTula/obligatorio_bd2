@@ -91,72 +91,111 @@ def obtener_opciones_voto(id_eleccion):
 
 # ---------- POST /votar ----------
 
+# routes/votacion.py  (dentro de tu Blueprint)
+
 @votacion_bp.route('/emitir_voto', methods=['POST'])
 def emitir_voto_simple():
     data = request.get_json()
-    id_eleccion = data.get('id_eleccion')
-    tipo_voto = data.get('tipo_voto')  # 'normal', 'blanco', 'anulado'
-    id_papeleta = data.get('id_papeleta')
-    valor_plebiscito = data.get('valor_plebiscito')
-    id_circuito = data.get('id_circuito')  # 🧠 este parámetro se necesita sí o sí
-    observado = data.get('observado', False)
 
-    if not id_eleccion or not tipo_voto or not id_circuito:
+    # ----------- 1. Datos recibidos -----------
+    id_eleccion      = data.get('id_eleccion')
+    tipo_voto        = data.get('tipo_voto')      # 'normal' | 'blanco' | 'anulado'
+    id_papeleta      = data.get('id_papeleta')    # obligatorio SOLO si es 'normal' sin plebiscito
+    valor_plebiscito = data.get('valor_plebiscito')  # True / False o None
+    id_circuito      = data.get('id_circuito')
+    observado        = data.get('observado', False)
+
+    # ----------- 2. Validaciones básicas -----------
+    if not all([id_eleccion, tipo_voto, id_circuito]):
         return jsonify({'error': 'Faltan datos obligatorios'}), 400
+
+    if tipo_voto not in {'normal', 'blanco', 'anulado'}:
+        return jsonify({'error': 'tipo_voto inválido'}), 400
 
     if not isinstance(observado, bool):
         return jsonify({'error': 'observado debe ser true o false'}), 400
 
+    if valor_plebiscito is not None and not isinstance(valor_plebiscito, bool):
+        return jsonify({'error': 'valor_plebiscito debe ser true/false o null'}), 400
+
     conn = get_db_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)   # dictionary=True para validaciones
     try:
         conn.start_transaction()
 
-        # 1. Insert en voto
+        # ----------- 3. Verificar que circuito pertenece a la elección -----------
+        cursor.execute("""
+            SELECT 1
+            FROM circuito
+            WHERE id = %s AND id_eleccion = %s
+        """, (id_circuito, id_eleccion))
+        if cursor.fetchone() is None:
+            return jsonify({'error': 'El circuito no pertenece a esa elección'}), 400
+
+        # ----------- 4. Resolver id_papeleta cuando es plebiscito -----------
+        if tipo_voto == 'normal':
+            if valor_plebiscito is not None:
+                # Papeleta de plebiscito
+                cursor.execute("""
+                    SELECT id_papeleta
+                    FROM papeleta_plebiscito
+                    WHERE id_eleccion = %s AND valor = %s
+                """, (id_eleccion, valor_plebiscito))
+                row = cursor.fetchone()
+                if row is None:
+                    return jsonify({'error': 'Opción de plebiscito inválida'}), 400
+                id_papeleta = row['id_papeleta']
+            else:
+                # Lista “normal”: validar que la papeleta exista para esa elección
+                cursor.execute("""
+                    SELECT 1
+                    FROM lista
+                    WHERE id_papeleta = %s AND id_eleccion = %s
+                """, (id_papeleta, id_eleccion))
+                if cursor.fetchone() is None:
+                    return jsonify({'error': 'id_papeleta no pertenece a esa elección'},), 400
+
+        # Si aún falta id_papeleta, es error (solo en voto normal)
+        if tipo_voto == 'normal' and not id_papeleta:
+            return jsonify({'error': 'Falta id_papeleta para voto normal'}), 400
+
+        # ----------- 5. INSERT en voto -----------
         cursor.execute("""
             INSERT INTO voto (id_circuito, id_eleccion, observado)
             VALUES (%s, %s, %s)
         """, (id_circuito, id_eleccion, observado))
         id_voto = cursor.lastrowid
 
-        # 2. Según el tipo de voto
+        # ----------- 6. INSERT según tipo_voto -----------
         if tipo_voto == 'blanco':
-            cursor.execute("INSERT INTO voto_blanco (id_voto) VALUES (%s)", (id_voto,))
+            cursor.execute(
+                "INSERT INTO voto_blanco (id_voto) VALUES (%s)",
+                (id_voto,)
+            )
 
         elif tipo_voto == 'anulado':
-            cursor.execute("INSERT INTO voto_anulado (id_voto) VALUES (%s)", (id_voto,))
+            cursor.execute(
+                "INSERT INTO voto_anulado (id_voto) VALUES (%s)",
+                (id_voto,)
+            )
 
         elif tipo_voto == 'normal':
+            # voto_normal
             cursor.execute("""
                 INSERT INTO voto_normal (id_voto, observado)
                 VALUES (%s, %s)
             """, (id_voto, observado))
             id_voto_normal = cursor.lastrowid
 
-            if valor_plebiscito is not None:
-                cursor.execute("""
-                    SELECT id_papeleta
-                    FROM papeleta_plebiscito
-                    WHERE id_eleccion = %s AND valor = %s
-                """, (id_eleccion, valor_plebiscito))
-                papeleta = cursor.fetchone()
-                if not papeleta:
-                    raise ValueError('Opción de plebiscito inválida')
-                id_papeleta = papeleta[0]
-
-            if not id_papeleta:
-                return jsonify({'error': 'Falta id_papeleta para voto normal'}), 400
-
+            # voto_elige_papeleta
             cursor.execute("""
                 INSERT INTO voto_elige_papeleta (id_voto_normal, id_papeleta, id_eleccion)
                 VALUES (%s, %s, %s)
             """, (id_voto_normal, id_papeleta, id_eleccion))
 
-        else:
-            return jsonify({'error': 'Tipo de voto inválido'}), 400
-
+        # ----------- 7. Commit y respuesta -----------
         conn.commit()
-        return jsonify({'mensaje': 'Voto registrado'}), 200
+        return jsonify({'mensaje': 'Voto registrado', 'id_voto': id_voto}), 201
 
     except mysql.connector.Error as err:
         conn.rollback()
