@@ -20,12 +20,38 @@ def crear_lista():
     data = request.json
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute("INSERT INTO lista (id_papeleta, id_eleccion, id_partido, organo, id_departamento) VALUES (%s, %s, %s, %s, %s)",
-                   (data['id_papeleta'], data['id_eleccion'], data['id_partido'], data['organo'], data['id_departamento']))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    return jsonify({'mensaje': 'Lista creada'})
+    
+    try:
+        # Verificar que la papeleta no esté ya en papeleta_plebiscito
+        cursor.execute("SELECT id_papeleta FROM papeleta_plebiscito WHERE id_papeleta = %s AND id_eleccion = %s",
+                       (data['id_papeleta'], data['id_eleccion']))
+        if cursor.fetchone():
+            return jsonify({'error': 'Esta papeleta ya está siendo usada como papeleta de plebiscito'}), 400
+        
+        # Verificar que la papeleta no esté ya en lista
+        cursor.execute("SELECT id_papeleta FROM lista WHERE id_papeleta = %s AND id_eleccion = %s",
+                       (data['id_papeleta'], data['id_eleccion']))
+        if cursor.fetchone():
+            return jsonify({'error': 'Esta papeleta ya está siendo usada como lista'}), 400
+        
+        # Insertar papeleta
+        cursor.execute("INSERT INTO papeleta (id, id_eleccion) VALUES (%s, %s)",
+                       (data['id_papeleta'], data['id_eleccion']))
+        
+        # Insertar lista
+        cursor.execute("INSERT INTO lista (id_papeleta, id_eleccion, id_partido, organo, id_departamento) VALUES (%s, %s, %s, %s, %s)",
+                       (data['id_papeleta'], data['id_eleccion'], data['id_partido'], data['organo'], data['id_departamento']))
+        
+        conn.commit()
+        return jsonify({'mensaje': 'Lista creada'})
+        
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error creando lista: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
+
 
 @lista_bp.route('/lista/<int:id_papeleta>/<int:id_eleccion>', methods=['PUT'])
 def modificar_lista(id_papeleta, id_eleccion):
@@ -45,6 +71,9 @@ def eliminar_lista(id_papeleta, id_eleccion):
     cursor = conn.cursor()
     try:
         cursor.execute("DELETE FROM lista WHERE id_papeleta = %s AND id_eleccion = %s", (id_papeleta, id_eleccion))
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM papeleta WHERE id = %s AND id_eleccion = %s",
+                   (id_papeleta, id_eleccion))
         conn.commit()
         return jsonify({'mensaje': 'Lista eliminada'})
     except Exception as e:

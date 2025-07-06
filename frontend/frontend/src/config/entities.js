@@ -164,13 +164,11 @@ export const entities = [
     name: 'Empleados Públicos', 
     endpoint: 'empleados-publicos', 
     singularEndpoint: 'empleado-publico',
-    fields: ['ci_ciudadano', 'num_mesa', 'id_tipo'],
+    fields: ['ci_ciudadano'],
     idFields: ['ci_ciudadano'],
-    displayFields: ['ci_ciudadano', 'num_mesa', 'id_tipo'],
+    displayFields: ['ci_ciudadano'],
     validations: {
-      ci_ciudadano: { required: true, type: 'number' },
-      num_mesa: { required: false, type: 'number' },
-      id_tipo: { required: false, type: 'number' }
+      ci_ciudadano: { required: true, type: 'number' }
     }
   },
   { 
@@ -208,7 +206,7 @@ export const entities = [
       id_eleccion: { required: true, type: 'number' },
       id_partido: { required: true, type: 'number' },
       organo: { required: true, type: 'text' },
-      id_departamento: { required: false, type: 'number' }
+      id_departamento: { required: true, type: 'number' }
     }
   },
   { 
