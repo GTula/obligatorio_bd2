@@ -99,9 +99,9 @@ def emitir_voto_simple():
 
     # ----------- 1. Datos recibidos -----------
     id_eleccion      = data.get('id_eleccion')
-    tipo_voto        = data.get('tipo_voto')      # 'normal' | 'blanco' | 'anulado'
-    id_papeleta      = data.get('id_papeleta')    # obligatorio SOLO si es 'normal' sin plebiscito
-    valor_plebiscito = data.get('valor_plebiscito')  # True / False o None
+    tipo_voto        = data.get('tipo_voto')           # 'normal' | 'blanco' | 'anulado'
+    id_papeleta      = data.get('id_papeleta')         # requerido solo para voto normal sin plebiscito
+    valor_plebiscito = data.get('valor_plebiscito')    # True / False o None
     id_circuito      = data.get('id_circuito')
     observado        = data.get('observado', False)
 
@@ -118,80 +118,69 @@ def emitir_voto_simple():
     if valor_plebiscito is not None and not isinstance(valor_plebiscito, bool):
         return jsonify({'error': 'valor_plebiscito debe ser true/false o null'}), 400
 
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)   # dictionary=True para validaciones
+    conn   = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
     try:
         conn.start_transaction()
 
-        # ----------- 3. Verificar que circuito pertenece a la elección -----------
-        cursor.execute("""
-            SELECT 1
-            FROM circuito
-            WHERE id = %s AND id_eleccion = %s
-        """, (id_circuito, id_eleccion))
+        # ----------- 3. El circuito pertenece a la elección -----------
+        cursor.execute(
+            "SELECT 1 FROM circuito WHERE id=%s AND id_eleccion=%s",
+            (id_circuito, id_eleccion)
+        )
         if cursor.fetchone() is None:
             return jsonify({'error': 'El circuito no pertenece a esa elección'}), 400
 
-        # ----------- 4. Resolver id_papeleta cuando es plebiscito -----------
+        # ----------- 4. Resolver id_papeleta -----------
         if tipo_voto == 'normal':
             if valor_plebiscito is not None:
-                # Papeleta de plebiscito
                 cursor.execute("""
                     SELECT id_papeleta
                     FROM papeleta_plebiscito
-                    WHERE id_eleccion = %s AND valor = %s
+                    WHERE id_eleccion=%s AND valor=%s
                 """, (id_eleccion, valor_plebiscito))
                 row = cursor.fetchone()
                 if row is None:
                     return jsonify({'error': 'Opción de plebiscito inválida'}), 400
                 id_papeleta = row['id_papeleta']
             else:
-                # Lista “normal”: validar que la papeleta exista para esa elección
                 cursor.execute("""
                     SELECT 1
                     FROM lista
-                    WHERE id_papeleta = %s AND id_eleccion = %s
+                    WHERE id_papeleta=%s AND id_eleccion=%s
                 """, (id_papeleta, id_eleccion))
                 if cursor.fetchone() is None:
-                    return jsonify({'error': 'id_papeleta no pertenece a esa elección'},), 400
+                    return jsonify({'error': 'id_papeleta no pertenece a esa elección'}), 400
 
-        # Si aún falta id_papeleta, es error (solo en voto normal)
-        if tipo_voto == 'normal' and not id_papeleta:
-            return jsonify({'error': 'Falta id_papeleta para voto normal'}), 400
+            if not id_papeleta:
+                return jsonify({'error': 'Falta id_papeleta para voto normal'}), 400
 
         # ----------- 5. INSERT en voto -----------
         cursor.execute("""
             INSERT INTO voto (id_circuito, id_eleccion, observado)
             VALUES (%s, %s, %s)
         """, (id_circuito, id_eleccion, observado))
-        id_voto = cursor.lastrowid
+        id_voto = cursor.lastrowid          # clave primaria recién creada
 
         # ----------- 6. INSERT según tipo_voto -----------
         if tipo_voto == 'blanco':
-            cursor.execute(
-                "INSERT INTO voto_blanco (id_voto) VALUES (%s)",
-                (id_voto,)
-            )
+            cursor.execute("INSERT INTO voto_blanco (id_voto) VALUES (%s)", (id_voto,))
 
         elif tipo_voto == 'anulado':
-            cursor.execute(
-                "INSERT INTO voto_anulado (id_voto) VALUES (%s)",
-                (id_voto,)
-            )
+            cursor.execute("INSERT INTO voto_anulado (id_voto) VALUES (%s)", (id_voto,))
 
         elif tipo_voto == 'normal':
-            # voto_normal
+            # voto_normal (PK = id_voto, por eso lo usamos directo)
             cursor.execute("""
                 INSERT INTO voto_normal (id_voto, observado)
                 VALUES (%s, %s)
             """, (id_voto, observado))
-            id_voto_normal = cursor.lastrowid
 
             # voto_elige_papeleta
             cursor.execute("""
                 INSERT INTO voto_elige_papeleta (id_voto_normal, id_papeleta, id_eleccion)
                 VALUES (%s, %s, %s)
-            """, (id_voto_normal, id_papeleta, id_eleccion))
+            """, (id_voto, id_papeleta, id_eleccion))
 
         # ----------- 7. Commit y respuesta -----------
         conn.commit()
@@ -206,3 +195,4 @@ def emitir_voto_simple():
     finally:
         cursor.close()
         conn.close()
+
