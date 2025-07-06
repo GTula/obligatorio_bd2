@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import '../styles/PantallaVotacion.css';
 
-function PantallaVotacion() {
+function PantallaObservado() {
   const [searchParams] = useSearchParams();
   const [mesaInfo, setMesaInfo] = useState({});
   const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ function PantallaVotacion() {
     const idEleccion = searchParams.get('idEleccion');
     const fecha = searchParams.get('fecha');
 
-    console.log('Parámetros recibidos en tótem NORMAL:', { numMesa, idCircuito, idEleccion, fecha });
+    console.log('Parámetros recibidos en tótem OBSERVADO:', { numMesa, idCircuito, idEleccion, fecha });
 
     // Validar que todos los parámetros estén presentes
     if (!numMesa || !idCircuito || !idEleccion) {
@@ -45,7 +45,7 @@ function PantallaVotacion() {
     // Cargar papeletas
     cargarPapeletas(info.idEleccion);
 
-    console.log('✅ Tótem NORMAL configurado para mesa:', info);
+    console.log('✅ Tótem OBSERVADO configurado para mesa:', info);
   }, [searchParams]);
 
   const cargarPapeletas = async (idEleccion) => {
@@ -81,9 +81,9 @@ function PantallaVotacion() {
     }
 
     const confirmacion = window.confirm(
-      `¿Confirma su voto ${tipoVoto.toUpperCase()}?${
+      `¿Confirma su voto ${tipoVoto.toUpperCase()} OBSERVADO?${
         tipoVoto === 'normal' ? `\nPapeleta seleccionada: ${getPapeletaTexto(papeletaSeleccionada)}` : ''
-      }`
+      }\n\n⚠️ ESTE VOTO SERÁ MARCADO COMO OBSERVADO`
     );
 
     if (!confirmacion) return;
@@ -95,7 +95,7 @@ function PantallaVotacion() {
         id_circuito: mesaInfo.idCircuito,
         id_eleccion: mesaInfo.idEleccion,
         tipo_voto: tipoVoto,
-        observado: false // ← SIEMPRE false en esta pantalla
+        observado: true // ← SIEMPRE observado en esta pantalla
       };
 
       if (tipoVoto === 'normal') {
@@ -112,7 +112,7 @@ function PantallaVotacion() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log('Voto NORMAL registrado:', result);
+        console.log('Voto OBSERVADO registrado:', result);
         setVotoCompletado(true);
         
         // Auto-cerrar después de 3 segundos
@@ -150,15 +150,15 @@ function PantallaVotacion() {
   };
 
   const cerrarTotem = () => {
-    if (window.confirm('¿Está seguro que desea cerrar el tótem?')) {
+    if (window.confirm('¿Está seguro que desea cerrar el tótem observado?')) {
       window.close();
     }
   };
 
   if (loading) {
     return (
-      <div className="totem-loading normal">
-        <h2>🗳️ Cargando Sistema de Votación...</h2>
+      <div className="totem-loading observado">
+        <h2>⚠️ Cargando Sistema de Votación OBSERVADO...</h2>
         <div className="spinner"></div>
       </div>
     );
@@ -166,8 +166,8 @@ function PantallaVotacion() {
 
   if (error) {
     return (
-      <div className="totem-error normal">
-        <h2>❌ Error en el Tótem</h2>
+      <div className="totem-error observado">
+        <h2>❌ Error en el Tótem Observado</h2>
         <p>{error}</p>
         <button onClick={cerrarTotem} className="btn-error">
           Cerrar Tótem
@@ -178,14 +178,15 @@ function PantallaVotacion() {
 
   if (votoCompletado) {
     return (
-      <div className="totem-success normal">
+      <div className="totem-success observado">
         <div className="success-content">
-          <h1>✅ VOTO REGISTRADO EXITOSAMENTE</h1>
+          <h1>✅ VOTO OBSERVADO REGISTRADO</h1>
           <div className="success-details">
             <p><strong>Tipo de voto:</strong> {tipoVoto.toUpperCase()}</p>
             {tipoVoto === 'normal' && (
               <p><strong>Selección:</strong> {getPapeletaTexto(papeletaSeleccionada)}</p>
             )}
+            <p className="observado-badge">⚠️ VOTO OBSERVADO</p>
           </div>
           <p className="auto-close">Esta ventana se cerrará automáticamente...</p>
           <button onClick={() => window.close()} className="btn-close">
@@ -197,10 +198,13 @@ function PantallaVotacion() {
   }
 
   return (
-    <div className="totem-container normal">
-      {/* Header del tótem normal */}
-      <div className="totem-header normal">
-        <h1>🗳️ SISTEMA DE VOTACIÓN ELECTRÓNICA</h1>
+    <div className="totem-container observado">
+      {/* Header del tótem observado */}
+      <div className="totem-header observado">
+        <h1>⚠️ SISTEMA DE VOTACIÓN OBSERVADO</h1>
+        <div className="observado-badge-large">
+          ⚠️ MODO OBSERVADO - TODOS LOS VOTOS SERÁN MARCADOS COMO OBSERVADOS
+        </div>
         <div className="mesa-info">
           <span>Mesa: {mesaInfo.numMesa}</span>
           <span>Circuito: {mesaInfo.idCircuito}</span>
@@ -211,37 +215,37 @@ function PantallaVotacion() {
 
       {/* Contenido principal */}
       <div className="totem-content">
-        <div className="voting-section normal">
-          <h2>Seleccione su opción de voto</h2>
+        <div className="voting-section observado">
+          <h2>Seleccione su opción de voto (OBSERVADO)</h2>
           
           {/* Opciones de tipo de voto */}
           <div className="vote-type-section">
             <h3>Tipo de Voto</h3>
             <div className="vote-type-buttons">
               <button 
-                className={`vote-type-btn normal ${tipoVoto === 'normal' ? 'selected' : ''}`}
+                className={`vote-type-btn observado ${tipoVoto === 'normal' ? 'selected' : ''}`}
                 onClick={() => setTipoVoto('normal')}
               >
                 <span className="vote-icon">✓</span>
-                <span>VOTO NORMAL</span>
+                <span>VOTO NORMAL (OBSERVADO)</span>
                 <small>Seleccionar una opción</small>
               </button>
               
               <button 
-                className={`vote-type-btn normal ${tipoVoto === 'blanco' ? 'selected' : ''}`}
+                className={`vote-type-btn observado ${tipoVoto === 'blanco' ? 'selected' : ''}`}
                 onClick={() => setTipoVoto('blanco')}
               >
                 <span className="vote-icon">⬜</span>
-                <span>VOTO EN BLANCO</span>
+                <span>VOTO EN BLANCO (OBSERVADO)</span>
                 <small>No seleccionar ninguna opción</small>
               </button>
               
               <button 
-                className={`vote-type-btn normal ${tipoVoto === 'anulado' ? 'selected' : ''}`}
+                className={`vote-type-btn observado ${tipoVoto === 'anulado' ? 'selected' : ''}`}
                 onClick={() => setTipoVoto('anulado')}
               >
                 <span className="vote-icon">❌</span>
-                <span>VOTO ANULADO</span>
+                <span>VOTO ANULADO (OBSERVADO)</span>
                 <small>Anular el voto</small>
               </button>
             </div>
@@ -255,7 +259,7 @@ function PantallaVotacion() {
                 {papeletas.map((papeleta, index) => (
                   <div 
                     key={index}
-                    className={`papeleta-card normal ${papeletaSeleccionada?.id === papeleta.id ? 'selected' : ''}`}
+                    className={`papeleta-card observado ${papeletaSeleccionada?.id === papeleta.id ? 'selected' : ''}`}
                     onClick={() => setPapeletaSeleccionada(papeleta)}
                   >
                     {eleccionInfo?.id_tipo_eleccion === 3 ? (
@@ -282,13 +286,14 @@ function PantallaVotacion() {
 
           {/* Resumen del voto */}
           {tipoVoto && (
-            <div className="vote-summary normal">
+            <div className="vote-summary observado">
               <h3>Resumen de su voto</h3>
               <div className="summary-content">
                 <p><strong>Tipo:</strong> {tipoVoto.toUpperCase()}</p>
                 {tipoVoto === 'normal' && papeletaSeleccionada && (
                   <p><strong>Selección:</strong> {getPapeletaTexto(papeletaSeleccionada)}</p>
                 )}
+                <p className="observado-text">⚠️ VOTO OBSERVADO</p>
               </div>
             </div>
           )}
@@ -305,10 +310,10 @@ function PantallaVotacion() {
             
             <button 
               onClick={confirmarVoto}
-              className="btn-confirm normal"
+              className="btn-confirm observado"
               disabled={votando || !tipoVoto || (tipoVoto === 'normal' && !papeletaSeleccionada)}
             >
-              {votando ? '⏳ Registrando...' : '✅ CONFIRMAR VOTO'}
+              {votando ? '⏳ Registrando...' : '⚠️ CONFIRMAR VOTO OBSERVADO'}
             </button>
           </div>
         </div>
@@ -317,5 +322,4 @@ function PantallaVotacion() {
   );
 }
 
-export default PantallaVotacion;
-
+export default PantallaObservado;

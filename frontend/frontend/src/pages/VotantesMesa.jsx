@@ -4,6 +4,8 @@ import './Mesa.css';
 import './Votantes.css';
 import { useMesa } from '../context/MesaContext';
 import { VotantesService } from '../services/votantesService';
+import escudo from '../assets/escudo_uruguay.png';
+
 
 function Votantes() {
   const navigate = useNavigate();
@@ -98,8 +100,8 @@ function Votantes() {
     }
   };
 
-  // Función corregida para abrir tótem
-  const abrirTotem = () => {
+  // Actualizar la función abrirTotem:
+  const abrirTotem = (observado = false) => {
     if (!mesaData.numMesa || !mesaData.idCircuito || !mesaData.idEleccion) {
       alert('Faltan datos de la mesa. Intente recargar la página.');
       return;
@@ -113,14 +115,20 @@ function Votantes() {
       fecha: mesaData.fecha || ''
     });
 
-    const urlTotem = `/votar?${params.toString()}`;
+    // Seleccionar la ruta correcta según el tipo
+    const ruta = observado ? '/votar-observado' : '/votar';
+    const urlTotem = `${ruta}?${params.toString()}`;
     
-    console.log('🗳️ Abriendo tótem con URL:', urlTotem);
-    console.log('Datos enviados:', mesaData);
+    console.log(`🗳️ Abriendo tótem ${observado ? 'OBSERVADO' : 'NORMAL'} con URL:`, urlTotem);
+    console.log('Datos enviados:', { ...mesaData, observado });
     
     // Abrir en nueva pestaña
-    window.open(urlTotem, '_blank', 'width=1200,height=800,scrollbars=yes,resizable=yes');
+    const windowTitle = observado ? 'Tótem Observado' : 'Tótem Normal';
+    window.open(urlTotem, '_blank', `width=1200,height=800,scrollbars=yes,resizable=yes,title=${windowTitle}`);
   };
+
+  
+
 
   const buscarVotante = async () => {
     if (!busqueda.serie || !busqueda.numero) {
@@ -255,14 +263,32 @@ function Votantes() {
   return (
     <div className="votantes-container">
       <div className="votantes-header">
-        <h2>Lista de Votantes - Mesa {mesaData.numMesa}</h2>
-        <div className="header-buttons">
-          <button onClick={abrirTotem} className="btn blue">
-            🗳️ Abrir Tótem de Votación
-          </button>
-          <button onClick={() => navigate('/mesa')} className="btn volver">
-            Volver
-          </button>
+        <div className="header-left">
+          <div className="logo">
+            <img src={escudo} alt="Escudo de Uruguay" />
+            <div className="logo-text">
+              <h3>CORTE ELECTORAL</h3>
+              <small>República Oriental del Uruguay</small>
+            </div>
+          </div>
+        </div>
+        
+        <div className="header-center">
+          <h2>Lista de Votantes - Mesa {mesaData.numMesa}</h2>
+        </div>
+        
+        <div className="header-right">
+          <div className="header-buttons">
+            <button onClick={() => abrirTotem(false)} className="btn blue">
+              🗳️ Abrir Tótem Normal
+            </button>
+            <button onClick={() => abrirTotem(true)} className="btn orange">
+              ⚠️ Abrir Tótem Observado
+            </button>
+            <button onClick={() => navigate('/mesa')} className="btn volver">
+              Volver
+            </button>
+          </div>
         </div>
       </div>
 

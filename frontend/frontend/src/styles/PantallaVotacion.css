@@ -85,3 +85,501 @@
   background-color: #6c757d;
   color: white;
 }
+.totem-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Arial', sans-serif;
+}
+
+.totem-header {
+  padding: 20px;
+  text-align: center;
+  color: white;
+  position: relative;
+}
+
+.totem-header.normal {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+}
+
+.totem-header.observado {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+}
+
+.totem-header h1 {
+  margin: 0 0 10px 0;
+  font-size: 2.5em;
+  font-weight: bold;
+}
+
+.observado-badge {
+  background: #ff4757;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 10px;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.mesa-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  font-size: 1.1em;
+  position: relative;
+}
+
+.btn-close-header {
+  position: absolute;
+  right: 20px;
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.totem-content {
+  padding: 40px 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.voting-section {
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.voting-section h2 {
+  text-align: center;
+  color: #333;
+  margin-bottom: 40px;
+  font-size: 2em;
+}
+
+.vote-type-section {
+  margin-bottom: 40px;
+}
+
+.vote-type-section h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+}
+
+.vote-type-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.vote-type-btn {
+  background: white;
+  border: 3px solid #e0e0e0;
+  border-radius: 15px;
+  padding: 30px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.vote-type-btn:hover {
+  border-color: #007bff;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0,123,255,0.2);
+}
+
+.vote-type-btn.selected {
+  border-color: #28a745;
+  background: #f8fff9;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(40,167,69,0.3);
+}
+
+.vote-icon {
+  font-size: 3em;
+  margin-bottom: 10px;
+}
+
+.vote-type-btn span:nth-child(2) {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #333;
+}
+
+.vote-type-btn small {
+  color: #666;
+  font-size: 0.9em;
+}
+
+.papeletas-section {
+  margin-bottom: 40px;
+}
+
+.papeletas-section h3 {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+}
+
+.papeletas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.papeleta-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.papeleta-card:hover {
+  border-color: #007bff;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,123,255,0.15);
+}
+
+.papeleta-card.selected {
+  border-color: #28a745;
+  background: #f8fff9;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(40,167,69,0.2);
+}
+
+.papeleta-plebiscito h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.3em;
+}
+
+.valor-plebiscito {
+  font-size: 2em;
+  font-weight: bold;
+  text-align: center;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+.valor-plebiscito.si {
+  background: #d4edda;
+  color: #155724;
+}
+
+.valor-plebiscito.no {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.papeleta-partido h4 {
+  margin: 0 0 15px 0;
+  color: #333;
+  font-size: 1.3em;
+}
+
+.papeleta-partido p {
+  margin: 8px 0;
+  color: #666;
+}
+
+.vote-summary {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 30px;
+}
+
+.vote-summary h3 {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.summary-content p {
+  margin: 8px 0;
+  font-size: 1.1em;
+}
+
+.observado-text {
+  color: #ff6b35;
+  font-weight: bold;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.btn-secondary {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.btn-secondary:hover {
+  background: #5a6268;
+  transform: translateY(-2px);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-confirm {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  border: none;
+  padding: 15px 40px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.2em;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  min-width: 200px;
+  box-shadow: 0 4px 15px rgba(40,167,69,0.3);
+}
+
+.btn-confirm:hover:not(:disabled) {
+  background: linear-gradient(135deg, #218838, #1e7e34);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(40,167,69,0.4);
+}
+
+.btn-confirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Estados especiales */
+.totem-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  text-align: center;
+}
+
+.totem-loading h2 {
+  margin-bottom: 30px;
+  font-size: 2.5em;
+}
+
+.spinner {
+  border: 4px solid rgba(255,255,255,0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.totem-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+.totem-error h2 {
+  margin-bottom: 20px;
+  font-size: 2.5em;
+}
+
+.totem-error p {
+  margin-bottom: 30px;
+  font-size: 1.2em;
+  max-width: 600px;
+}
+
+.btn-error {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 15px 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-error:hover {
+  background: white;
+  color: #ff6b6b;
+}
+
+.totem-success {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  text-align: center;
+}
+
+.success-content {
+  background: rgba(255,255,255,0.1);
+  border-radius: 20px;
+  padding: 60px 40px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.success-content h1 {
+  font-size: 3em;
+  margin-bottom: 30px;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.success-details {
+  margin-bottom: 30px;
+  font-size: 1.3em;
+}
+
+.success-details p {
+  margin: 10px 0;
+}
+
+.success-details .observado {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.auto-close {
+  font-size: 1.1em;
+  margin-bottom: 20px;
+  opacity: 0.9;
+}
+
+.btn-close {
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid white;
+  padding: 15px 30px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1em;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn-close:hover {
+  background: white;
+  color: #28a745;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .totem-header h1 {
+    font-size: 1.8em;
+  }
+  
+  .mesa-info {
+    flex-direction: column;
+    gap: 10px;
+    font-size: 1em;
+  }
+  
+  .voting-section {
+    padding: 20px;
+  }
+  
+  .vote-type-buttons {
+    grid-template-columns: 1fr;
+  }
+  
+  .papeletas-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .success-content {
+    padding: 40px 20px;
+  }
+  
+  .success-content h1 {
+    font-size: 2em;
+  }
+}
+
+/* Animaciones adicionales */
+.papeleta-card {
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vote-type-btn {
+  animation: fadeInScale 0.3s ease forwards;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

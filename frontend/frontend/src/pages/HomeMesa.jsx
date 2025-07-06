@@ -10,6 +10,8 @@ function HomeMesa() {
   const [accion, setAccion] = useState('');
   const [circuitoInfo, setCircuitoInfo] = useState(null);
   const navigate = useNavigate();
+  const [tiempoRestante, setTiempoRestante] = useState('');
+
   const {
     mesaAbierta,
     mesaCerrada,
@@ -25,6 +27,32 @@ function HomeMesa() {
     idEleccion: null,
     fecha: null
   });
+
+  useEffect(() => {
+    const actualizarTiempo = () => {
+      const ahora = new Date();
+      const finDelDia = new Date();
+      finDelDia.setHours(23, 59, 59, 999);
+      
+      const diferencia = finDelDia - ahora;
+      
+      if (diferencia > 0) {
+        const horas = Math.floor(diferencia / (1000 * 60 * 60));
+        const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+        setTiempoRestante(`${horas}h ${minutos}min`);
+      } else {
+        setTiempoRestante('Tiempo finalizado');
+      }
+    };
+
+    // Actualizar inmediatamente
+    actualizarTiempo();
+    
+    // Actualizar cada minuto
+    const intervalo = setInterval(actualizarTiempo, 60000);
+    
+    return () => clearInterval(intervalo);
+  }, []);
 
   useEffect(() => {
   const fetchCircuitoInfo = async () => {
@@ -46,7 +74,6 @@ function HomeMesa() {
       if (response.ok) {
         setCircuitoInfo(data);
         
-        // IMPORTANTE: Asegurar que guardamos el ID del circuito correctamente
         const idCircuito = data.ID_Circuito || data.id_circuito || data.idCircuito;
         const idEleccion = data.ID_Eleccion || data.id_eleccion || data.idEleccion || 1;
         
@@ -81,13 +108,11 @@ function HomeMesa() {
   };
 
   fetchCircuitoInfo();
-}, []);
+  }, []);
 
-  // Obtener ID de elección (puedes ajustar esto según tu lógica)
   useEffect(() => {
-    // Aquí deberías obtener el ID de elección según tu lógica de negocio
-    // Por ejemplo, desde localStorage, una API, o props
-    const idEleccion = localStorage.getItem('id_eleccion') || 1; // Valor por defecto
+ 
+    const idEleccion = localStorage.getItem('id_eleccion') || 1; 
     setMesaData(prev => ({
       ...prev,
       idEleccion: parseInt(idEleccion)
@@ -107,7 +132,6 @@ function HomeMesa() {
     if (accion === 'abrir') {
       abrirMesa();
     } else if (accion === 'cerrar') {
-      // Pasar los datos de la mesa al contexto antes de cerrar
       cerrarMesa(mesaData);
     }
     cerrarModal();
@@ -188,7 +212,7 @@ function HomeMesa() {
           </div>
           <div className="card">
             <h3>Tiempo restante</h3>
-            <p>8h 30min</p>
+            <p className="stat-number tiempo">{tiempoRestante}</p>
           </div>
         </section>
 

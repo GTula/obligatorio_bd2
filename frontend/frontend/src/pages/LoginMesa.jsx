@@ -13,7 +13,7 @@ function LoginMesa() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const fecha = '2025-10-20'; // Esto debería ser dinámico en una app real
+            const fecha = new Date().toISOString().split('T')[0]; 
             const res = await fetch('http://127.0.0.1:5000/api/login_presidente/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },

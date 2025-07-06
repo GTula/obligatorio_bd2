@@ -165,7 +165,7 @@ def get_votos_normales(num_mesa, id_eleccion):
             
             tabla_partido_candidato = cursor.fetchall()
             
-            # NUEVA TABLA 4: Ganadores por Departamento
+            # TABLA 4: Ganadores por Departamento
             cursor.execute("""
                 WITH votos_por_departamento AS (
                     SELECT 
@@ -219,7 +219,7 @@ def get_votos_normales(num_mesa, id_eleccion):
             
             tabla_ganadores_departamento = cursor.fetchall()
             
-            # Agregar votos en blanco y anulados a las tablas principales
+            # Agregar votos en blanco y anulados a las tablas 
             if votos_blanco > 0:
                 tabla_lista_partido.append({
                     'lista_id': 'En Blanco',
@@ -252,7 +252,7 @@ def get_votos_normales(num_mesa, id_eleccion):
                     'cant_votos': votos_anulados
                 })
             
-            # Calcular porcentajes para las tablas principales
+            # Calcular porcentajes para las tablas 
             for item in tabla_lista_partido:
                 item['porcentaje'] = round((item['cant_votos'] / total_votos) * 100, 2)
                 

@@ -352,12 +352,12 @@
 .btn.volver {
   background: #6c757d;
   color: white;
-  padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  padding: 10px 20px;
+  border-radius: 5px;
   cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
+  font-weight: bold;
+  transition: all 0.3s ease;
 }
 
 .btn.volver:hover {
@@ -433,5 +433,131 @@
   
   .votante-acciones {
     flex-direction: column;
+  }
+}
+
+
+
+.btn.orange {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.btn.orange:hover {
+  background: linear-gradient(135deg, #e55a2b, #e8851a);
+  transform: translateY(-2px);
+}
+
+.header-buttons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.header-buttons .btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.header-buttons .btn.blue {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+}
+
+.header-buttons .btn.blue:hover {
+  background: linear-gradient(135deg, #0056b3, #004085);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+}
+
+.header-buttons .btn.orange {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  color: white;
+}
+
+.header-buttons .btn.orange:hover {
+  background: linear-gradient(135deg, #ff4757, #ff6b35);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255,107,53,0.3);
+}
+
+.header-buttons .btn.volver {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  color: white;
+}
+
+.header-buttons .btn.volver:hover {
+  background: linear-gradient(135deg, #5a6268, #495057);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108,117,125,0.3);
+}
+
+/* Responsive para el header */
+@media (max-width: 1200px) {
+  .votantes-header {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .header-left,
+  .header-center,
+  .header-right {
+    flex: 1 1 auto;
+  }
+  
+  .header-center {
+    order: -1;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  .header-buttons {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 768px) {
+  .votantes-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .header-left,
+  .header-center,
+  .header-right {
+    width: 100%;
+  }
+  
+  .logo-small {
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+  
+  .header-center h2 {
+    font-size: 1.4em;
+    margin-bottom: 15px;
+  }
+  
+  .header-buttons {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .header-buttons .btn {
+    font-size: 0.8em;
+    padding: 8px 12px;
   }
 }

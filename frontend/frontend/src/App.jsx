@@ -11,7 +11,8 @@ import LoginAdmin from './pages/LoginAdmin';
 import AdminPanel from './pages/AdminPanel';
 
 
-import { MesaProvider } from './context/MesaContext'; // <- este es tu nuevo contexto
+import { MesaProvider } from './context/MesaContext'; 
+import PantallaObservado from './pages/PantallaObservado';
 
 export const mesaAuthContext = createContext();
 export const votanteAuthContext = createContext();
@@ -35,6 +36,7 @@ function App() {
                 } />
                 <Route path="/login-votante" element={<LoginVotante />} />
                 <Route path="/votar" element={<PantallaVotacion />}/>
+                <Route path="/votar-observado" element={<PantallaObservado />}/>
                 <Route path="/votantes" element={
                   isMesaAuthenticated ? <Votantes /> : <Navigate to="/login-mesa" />
                 } />
