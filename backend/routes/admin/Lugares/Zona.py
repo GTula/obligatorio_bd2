@@ -68,3 +68,21 @@ def eliminar_zona(id, id_departamento):
     finally:
         cursor.close()
         conn.close()
+
+@zona_bp.route('/zona/forzar/<int:id>/<int:id_departamento>', methods=['DELETE'])
+def forzar_eliminar_zona(id, id_departamento):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM establecimiento WHERE id_zona = %s AND id_departamento = %s", (id, id_departamento))
+        cursor.execute("DELETE FROM zona WHERE id = %s AND id_departamento = %s", (id, id_departamento))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Zona eliminada forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

@@ -73,3 +73,21 @@ def eliminar_candidato(ci):
     finally:
         cursor.close()
         conn.close()
+
+@candidato_bp.route('/candidato/forzar/<ci_ciudadano>', methods=['DELETE'])
+def forzar_eliminar_candidato(ci_ciudadano):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM candidato_por_lista WHERE id_candidato = %s", (ci_ciudadano,))
+        cursor.execute("DELETE FROM candidato WHERE ci_ciudadano = %s", (ci_ciudadano,))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Candidato eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

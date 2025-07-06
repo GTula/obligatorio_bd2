@@ -51,3 +51,21 @@ def eliminar_tipo_empleado(id):
     finally:
         cursor.close()
         conn.close()
+
+@tipo_empleado_bp.route('/tipo-empleado/forzar/<int:id>', methods=['DELETE'])
+def forzar_eliminar_tipo_empleado(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM participacion_en_mesa WHERE id_tipo = %s", (id,))
+        cursor.execute("DELETE FROM tipo_empleado WHERE id = %s", (id,))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Tipo de empleado eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

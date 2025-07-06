@@ -51,3 +51,31 @@ def eliminar_papeleta(id, id_eleccion):
     finally:
         cursor.close()
         conn.close()
+
+@papeleta_bp.route('/papeleta/forzar/<int:id>/<int:id_eleccion>', methods=['DELETE'])
+def forzar_eliminar_papeleta(id, id_eleccion):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        
+        eliminaciones = [
+            "DELETE FROM voto_elige_papeleta WHERE id_papeleta = %s AND id_eleccion = %s",
+            "DELETE FROM candidato_por_lista WHERE id_papeleta = %s AND id_eleccion = %s",
+            "DELETE FROM lista WHERE id_papeleta = %s AND id_eleccion = %s",
+            "DELETE FROM papeleta_plebiscito WHERE id_papeleta = %s AND id_eleccion = %s",
+            "DELETE FROM papeleta WHERE id = %s AND id_eleccion = %s"
+        ]
+        
+        for sql in eliminaciones:
+            cursor.execute(sql, (id, id_eleccion))
+        
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Papeleta eliminada forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

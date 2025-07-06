@@ -62,5 +62,22 @@ def eliminar_mesa(num, id_circuito, id_eleccion):
         cursor.close()
         conn.close()
 
+@mesa_bp.route('/mesa/forzar/<int:num>/<int:id_circuito>/<int:id_eleccion>', methods=['DELETE'])
+def forzar_eliminar_mesa(num, id_circuito, id_eleccion):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM participacion_en_mesa WHERE num_mesa = %s AND id_circuito = %s AND id_eleccion = %s", (num, id_circuito, id_eleccion))
+        cursor.execute("DELETE FROM mesa WHERE num = %s AND id_circuito = %s AND id_eleccion = %s", (num, id_circuito, id_eleccion))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Mesa eliminada forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
 
 

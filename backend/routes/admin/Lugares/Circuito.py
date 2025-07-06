@@ -59,3 +59,32 @@ def eliminar_circuito(id, id_eleccion):
     finally:
         cursor.close()
         conn.close()
+
+@circuito_bp.route('/circuito/forzar/<int:id>/<int:id_eleccion>', methods=['DELETE'])
+def forzar_eliminar_circuito(id, id_eleccion):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        
+        eliminaciones = [
+            "DELETE FROM voto WHERE id_circuito = %s AND id_eleccion = %s",
+            "DELETE FROM vota_en WHERE id_circuito = %s AND id_eleccion = %s",
+            "DELETE FROM asignado WHERE id_circuito = %s AND id_eleccion = %s",
+            "DELETE FROM participacion_en_mesa WHERE id_circuito = %s AND id_eleccion = %s",
+            "DELETE FROM mesa WHERE id_circuito = %s AND id_eleccion = %s",
+            "DELETE FROM circuito WHERE id = %s AND id_eleccion = %s"
+        ]
+        
+        for sql in eliminaciones:
+            cursor.execute(sql, (id, id_eleccion))
+        
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Circuito eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

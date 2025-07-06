@@ -53,3 +53,23 @@ def eliminar_credencial(serie, numero):
     finally:
         cursor.close()
         conn.close()
+
+@credencial_bp.route('/credencial/forzar/<serie>/<numero>', methods=['DELETE'])
+def forzar_eliminar_credencial(serie, numero):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM vota_en WHERE serie_credencial = %s AND numero_credencial = %s", (serie, numero))
+        cursor.execute("DELETE FROM asignado WHERE serie_credencial = %s AND numero_credencial = %s", (serie, numero))
+        cursor.execute("DELETE FROM credencial WHERE serie = %s AND numero = %s", (serie, numero))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Credencial eliminada forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
+

@@ -492,4 +492,54 @@ font-size: 1.4em;
   .header h2 {
     font-size: 1.5em;
   }
+
+  /* Estilos para eliminación forzada */
+.action-card.force-delete {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  border: 2px solid transparent;
+}
+
+.action-card.force-delete::before {
+  background: linear-gradient(90deg, #dc3545, #bd2130);
+}
+
+.action-card.force-delete:hover {
+  border-color: #dc3545;
+  background: linear-gradient(135deg, #c82333, #a71e2a);
+}
+
+.action-card.force-delete h3 {
+  color: #fff;
+}
+
+.action-card.force-delete p {
+  color: #f8d7da;
+}
+
+.btn-force-delete {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
+  min-width: 200px;
+}
+
+.btn-force-delete:hover {
+  background: linear-gradient(135deg, #c82333, #bd2130);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.btn-force-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
 }

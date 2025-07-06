@@ -59,16 +59,51 @@ def eliminar_ciudadano(ci):
         cursor.close()
         conn.close()
 
+
 @ciudadano_bp.route('/ciudadano/forzar/<ci>', methods=['DELETE'])
 def forzar_eliminar_ciudadano(ci):
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-        cursor.execute("DELETE FROM ciudadano WHERE ci = %s", (ci,))
+        
+        # Eliminaciones con parámetros correctos
+        eliminaciones = [
+            ("DELETE FROM participacion_en_mesa WHERE ci_ciudadano = %s", (ci,)),
+            
+            ("DELETE FROM agente_establecimiento WHERE ci_policia = %s", (ci,)),
+            
+            ("DELETE FROM vota_en WHERE serie_credencial IN (SELECT serie FROM credencial WHERE ci_ciudadano = %s) AND numero_credencial IN (SELECT numero FROM credencial WHERE ci_ciudadano = %s)", (ci, ci)),
+            
+            ("DELETE FROM asignado WHERE serie_credencial IN (SELECT serie FROM credencial WHERE ci_ciudadano = %s) AND numero_credencial IN (SELECT numero FROM credencial WHERE ci_ciudadano = %s)", (ci, ci)),
+            
+            ("DELETE FROM candidato_por_lista WHERE id_candidato = %s", (ci,)),
+            ("DELETE FROM autoridad WHERE ci_ciudadano = %s", (ci,)),
+            ("DELETE FROM agente_policia WHERE ci_ciudadano = %s", (ci,)),
+            ("DELETE FROM empleado_publico WHERE ci_ciudadano = %s", (ci,)),
+            ("DELETE FROM candidato WHERE ci_ciudadano = %s", (ci,)),
+            
+            ("DELETE FROM credencial WHERE ci_ciudadano = %s", (ci,)),
+            
+            ("DELETE FROM ciudadano WHERE ci = %s", (ci,))
+        ]
+        
+        for sql, params in eliminaciones:
+            try:
+                cursor.execute(sql, params)
+                print(f"Ejecutado: {sql} con parámetros: {params}")
+            except Exception as e:
+                print(f"Warning en eliminación: {sql} - {str(e)}")
+                continue
+        
         cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
         conn.commit()
-        return jsonify({'mensaje': 'Ciudadano eliminado forzadamente'})
+        return jsonify({'mensaje': 'Ciudadano eliminado forzadamente con todas sus dependencias'})
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"Error completo: {str(e)}")
+        return jsonify({'error': f'Error en eliminación forzada: {str(e)}'}), 400
     finally:
         cursor.close()
         conn.close()

@@ -52,3 +52,22 @@ def eliminar_partido(id):
     finally:
         cursor.close()
         conn.close()
+
+@partido_bp.route('/partido/forzar/<int:id>', methods=['DELETE'])
+def forzar_eliminar_partido(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM autoridad WHERE id_partido = %s", (id,))
+        cursor.execute("DELETE FROM lista WHERE id_partido = %s", (id,))
+        cursor.execute("DELETE FROM partido WHERE id = %s", (id,))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Partido eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

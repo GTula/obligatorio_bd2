@@ -79,3 +79,22 @@ def eliminar_establecimiento(id):
     finally:
         cursor.close()
         conn.close()
+
+@establecimiento_bp.route('/establecimiento/forzar/<int:id>', methods=['DELETE'])
+def forzar_eliminar_establecimiento(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM agente_establecimiento WHERE id_establecimiento = %s", (id,))
+        cursor.execute("DELETE FROM circuito WHERE id_establecimiento = %s", (id,))
+        cursor.execute("DELETE FROM establecimiento WHERE id = %s", (id,))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Establecimiento eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

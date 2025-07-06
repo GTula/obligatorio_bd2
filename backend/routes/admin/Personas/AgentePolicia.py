@@ -53,3 +53,21 @@ def eliminar_agente_policia(ci):
     finally:
         cursor.close()
         conn.close()
+
+@agente_policia_bp.route('/agente-policia/forzar/<ci_ciudadano>', methods=['DELETE'])
+def forzar_eliminar_agente_policia(ci_ciudadano):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM agente_establecimiento WHERE ci_policia = %s", (ci_ciudadano,))
+        cursor.execute("DELETE FROM agente_policia WHERE ci_ciudadano = %s", (ci_ciudadano,))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Agente de policía eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

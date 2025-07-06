@@ -46,3 +46,21 @@ def eliminar_comisaria(id):
     cursor.close()
     conn.close()
     return jsonify({'mensaje': 'Comisaría eliminada'})
+
+@comisaria_bp.route('/comisaria/forzar/<int:id>', methods=['DELETE'])
+def forzar_eliminar_comisaria(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM agente_policia WHERE id_comisaria = %s", (id,))
+        cursor.execute("DELETE FROM comisaria WHERE id = %s", (id,))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Comisaría eliminada forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

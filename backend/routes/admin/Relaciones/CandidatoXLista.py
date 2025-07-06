@@ -51,3 +51,20 @@ def eliminar_candidato_por_lista(id_papeleta, id_eleccion, id_candidato):
     conn.close()
     return jsonify({'mensaje': 'Candidato por lista eliminado'})
 
+@candidato_por_lista_bp.route('/candidato-por-lista/forzar/<int:id_papeleta>/<int:id_eleccion>/<id_candidato>', methods=['DELETE'])
+def forzar_eliminar_candidato_por_lista(id_papeleta, id_eleccion, id_candidato):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM candidato_por_lista WHERE id_papeleta = %s AND id_eleccion = %s AND id_candidato = %s", (id_papeleta, id_eleccion, id_candidato))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Candidato por lista eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
+

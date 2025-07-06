@@ -49,3 +49,20 @@ def eliminar_vota_en(serie, numero, id_circuito, id_eleccion):
     cursor.close()
     conn.close()
     return jsonify({'mensaje': 'Voto eliminado'})
+
+@vota_en_bp.route('/vota-en/forzar/<serie>/<numero>/<int:id_circuito>/<int:id_eleccion>', methods=['DELETE'])
+def forzar_eliminar_vota_en(serie, numero, id_circuito, id_eleccion):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM vota_en WHERE serie_credencial = %s AND numero_credencial = %s AND id_circuito = %s AND id_eleccion = %s", (serie, numero, id_circuito, id_eleccion))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Registro de voto eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

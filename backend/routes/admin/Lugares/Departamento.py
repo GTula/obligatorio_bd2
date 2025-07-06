@@ -52,3 +52,30 @@ def eliminar_departamento(id):
     finally:
         cursor.close()
         conn.close()
+
+@departamento_bp.route('/departamento/forzar/<int:id>', methods=['DELETE'])
+def forzar_eliminar_departamento(id):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        
+        eliminaciones = [
+            "DELETE FROM lista WHERE id_departamento = %s",
+            "DELETE FROM establecimiento WHERE id_departamento = %s",
+            "DELETE FROM zona WHERE id_departamento = %s",
+            "DELETE FROM departamento WHERE id = %s"
+        ]
+        
+        for sql in eliminaciones:
+            cursor.execute(sql, (id,))
+        
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Departamento eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()

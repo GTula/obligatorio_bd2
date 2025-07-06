@@ -51,3 +51,21 @@ def eliminar_empleado_publico(ci):
     cursor.close()
     conn.close()
     return jsonify({'mensaje': 'Empleado público eliminado'})
+
+@empleado_publico_bp.route('/empleado-publico/forzar/<ci_ciudadano>', methods=['DELETE'])
+def forzar_eliminar_empleado_publico(ci_ciudadano):
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
+        cursor.execute("DELETE FROM participacion_en_mesa WHERE ci_ciudadano = %s", (ci_ciudadano,))
+        cursor.execute("DELETE FROM empleado_publico WHERE ci_ciudadano = %s", (ci_ciudadano,))
+        cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
+        conn.commit()
+        return jsonify({'mensaje': 'Empleado público eliminado forzadamente'})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({'error': f'Error: {str(e)}'}), 400
+    finally:
+        cursor.close()
+        conn.close()
