@@ -47,6 +47,9 @@ function App() {
                 <Route path="/admin" element={
                   isAdminAuthenticated ? <AdminPanel /> : <Navigate to="/login-admin" />
                 } />
+                <Route path="/" element={
+                  isMesaAuthenticated ? <HomeMesa /> : <Navigate to="/login-mesa" />
+                } />
               </Routes>
             </BrowserRouter>
           </MesaProvider>
