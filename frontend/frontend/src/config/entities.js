@@ -259,21 +259,6 @@ export const entities = [
     }
   },
   { 
-    name: 'Vota En', 
-    endpoint: 'vota-en', 
-    singularEndpoint: 'vota-en',
-    fields: ['serie_credencial', 'numero_credencial', 'id_circuito', 'id_eleccion', 'observado'],
-    idFields: ['serie_credencial', 'numero_credencial', 'id_circuito', 'id_eleccion'],
-    displayFields: ['serie_credencial', 'numero_credencial', 'id_circuito', 'id_eleccion', 'observado'],
-    validations: {
-      serie_credencial: { required: true, type: 'text' },
-      numero_credencial: { required: true, type: 'text' },
-      id_circuito: { required: true, type: 'number' },
-      id_eleccion: { required: true, type: 'number' },
-      observado: { required: false, type: 'checkbox' }
-    }
-  },
-  { 
     name: 'Agentes Establecimiento', 
     endpoint: 'agentes-establecimiento', 
     singularEndpoint: 'agente-establecimiento',

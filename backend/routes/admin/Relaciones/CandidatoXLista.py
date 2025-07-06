@@ -22,7 +22,7 @@ def crear_candidato_por_lista():
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("INSERT INTO candidato_por_lista (id_papeleta, id_eleccion, id_candidato) VALUES (%s, %s, %s)",
-                   (data['id_papeleta'], data['id_eleccion'], data['id_candidato']))
+               (data['id_papeleta'], data['id_eleccion'], data['id_candidato']))
     conn.commit()
     cursor.close()
     conn.close()
