@@ -90,60 +90,31 @@ def obtener_opciones_voto(id_eleccion):
         conn.close()          # buena práctica
 
 # ---------- POST /votar ----------
-@votacion_bp.route('/votar', methods=['POST'])
-def registrar_voto():
+@votacion_bp.route('/emitir_voto', methods=['POST'])
+def emitir_voto_simple():
     data = request.get_json()
-    ci_ciudadano   = data.get('ci')
-    id_eleccion    = data.get('id_eleccion')
-    tipo_voto      = data.get('tipo_voto')          # 'normal', 'blanco', 'anulado'
-    id_papeleta    = data.get('id_papeleta')
+    id_eleccion = data.get('id_eleccion')
+    tipo_voto = data.get('tipo_voto')  # 'normal', 'blanco', 'anulado'
+    id_papeleta = data.get('id_papeleta')
     valor_plebiscito = data.get('valor_plebiscito')
+    id_circuito = data.get('id_circuito')  # 🧠 este parámetro se necesita sí o sí
+
+    if not id_eleccion or not tipo_voto or not id_circuito:
+        return jsonify({'error': 'Faltan datos obligatorios'}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
     try:
         conn.start_transaction()
 
-        # 1. Verificar si ya votó
-        cursor.execute("""
-            SELECT 1
-            FROM vota_en ve
-            JOIN credencial c ON ve.serie_credencial = c.serie
-                              AND ve.numero_credencial = c.numero
-            WHERE c.ci_ciudadano = %s AND ve.id_eleccion = %s
-        """, (ci_ciudadano, id_eleccion))
-        if cursor.fetchone():
-            return jsonify({'error': 'El ciudadano ya votó en esta elección'}), 400
-
-        # 2. Circuito asignado
-        cursor.execute("""
-            SELECT a.id_circuito
-            FROM asignado a
-            JOIN credencial c ON a.serie_credencial = c.serie
-                              AND a.numero_credencial = c.numero
-            WHERE c.ci_ciudadano = %s AND a.id_eleccion = %s
-        """, (ci_ciudadano, id_eleccion))
-        fila = cursor.fetchone()
-        if not fila:
-            return jsonify({'error': 'Ciudadano no asignado a circuito'}), 400
-        id_circuito = fila[0]
-
-        # 3. Insert en vota_en
-        cursor.execute("""
-            INSERT INTO vota_en (serie_credencial, numero_credencial, id_circuito, id_eleccion, observado)
-            SELECT serie, numero, %s, %s, FALSE
-            FROM credencial
-            WHERE ci_ciudadano = %s
-        """, (id_circuito, id_eleccion, ci_ciudadano))
-
-        # 4. Insert voto
+        # 1. Insert en voto
         cursor.execute("""
             INSERT INTO voto (id_circuito, id_eleccion, observado)
             VALUES (%s, %s, FALSE)
         """, (id_circuito, id_eleccion))
         id_voto = cursor.lastrowid
 
-        # 5. Tipo de voto
+        # 2. Según el tipo de voto
         if tipo_voto == 'blanco':
             cursor.execute("INSERT INTO voto_blanco (id_voto) VALUES (%s)", (id_voto,))
 
@@ -157,7 +128,6 @@ def registrar_voto():
             """, (id_voto,))
             id_voto_normal = cursor.lastrowid
 
-            # Plebiscito
             if valor_plebiscito:
                 cursor.execute("""
                     SELECT id_papeleta
@@ -169,13 +139,19 @@ def registrar_voto():
                     raise ValueError('Opción de plebiscito inválida')
                 id_papeleta = papeleta[0]
 
+            if not id_papeleta:
+                return jsonify({'error': 'Falta id_papeleta para voto normal'}), 400
+
             cursor.execute("""
                 INSERT INTO voto_elige_papeleta (id_voto_normal, id_papeleta, id_eleccion)
                 VALUES (%s, %s, %s)
             """, (id_voto_normal, id_papeleta, id_eleccion))
 
+        else:
+            return jsonify({'error': 'Tipo de voto inválido'}), 400
+
         conn.commit()
-        return jsonify({'mensaje': 'Voto registrado exitosamente'}), 200
+        return jsonify({'mensaje': 'Voto registrado'}), 200
 
     except mysql.connector.Error as err:
         conn.rollback()
@@ -186,3 +162,4 @@ def registrar_voto():
     finally:
         cursor.close()
         conn.close()
+
