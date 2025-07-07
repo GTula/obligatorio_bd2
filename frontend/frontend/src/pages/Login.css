@@ -233,12 +233,12 @@
     font-size: 1em;
     transition: all 0.3s ease;
     background: #fafafa;
+    color: #2c3e50; 
 }
 
 .form-input:focus {
     outline: none;
     border-color: var(--primary-blue);
-    background: white;
     box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
     transform: translateY(-2px);
 }
@@ -741,14 +741,10 @@
         color: #a0aec0;
     }
     
-    .form-input {
-        background: #4a5568;
-        border-color: #718096;
-        color: white;
-    }
     
     .form-input:focus {
         background: #2d3748;
         border-color: var(--primary-blue);
     }
+    
 }
