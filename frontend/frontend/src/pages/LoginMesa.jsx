@@ -19,7 +19,8 @@ function LoginMesa() {
         
         try {
             // Obtener fecha actual en formato YYYY-MM-DD
-            const fechaActual = new Date().toISOString().split('T')[0];
+            const hoy = new Date();
+            const fechaActual = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
             
             const res = await fetch('http://127.0.0.1:5000/api/login_presidente/', {
                 method: 'POST',
