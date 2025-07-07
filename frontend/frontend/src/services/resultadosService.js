@@ -1,7 +1,8 @@
 const API_BASE = 'http://127.0.0.1:5000/api';
 
 export class ResultadosService {
-    static async getVotosNormales(numMesa, idEleccion, fecha) {
+    // Método existente para votos CON observados
+    static async getVotosConObservados(numMesa, idEleccion, fecha) {
         try {
             const response = await fetch(
                 `${API_BASE}/votos/${numMesa}/votos_normales/${idEleccion}?fecha=${fecha}`
@@ -13,7 +14,25 @@ export class ResultadosService {
 
             return await response.json();
         } catch (error) {
-            console.error("Error obteniendo votos normales:", error);
+            console.error("Error obteniendo votos con observados:", error);
+            throw error;
+        }
+    }
+
+    // NUEVO método para votos SOLO normales (sin observados)
+    static async getVotosSoloNormales(numMesa, idEleccion, fecha) {
+        try {
+            const response = await fetch(
+                `${API_BASE}/votos-normales/${numMesa}/votos_normales/${idEleccion}?fecha=${fecha}`
+            );
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error("Error obteniendo votos solo normales:", error);
             throw error;
         }
     }

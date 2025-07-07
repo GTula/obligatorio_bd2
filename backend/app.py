@@ -10,6 +10,7 @@ from routes.admin.admin import admin_bp
 from routes.votantes import votantes_bp
 from routes.votos_circuito import votos_bp
 from routes.papeletas import papeletas_bp
+from routes.votos_circuito_normales import votos_normales_bp
 
 app = Flask(__name__)
 CORS(app)
@@ -24,6 +25,7 @@ app.register_blueprint(login_admin_bp, url_prefix="/api/login_admin")
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
 app.register_blueprint(votantes_bp, url_prefix="/api/votantes")
 app.register_blueprint(papeletas_bp, url_prefix="/api/papeletas")
+app.register_blueprint(votos_normales_bp, url_prefix="/api/votos-normales")
 
 @app.route('/debug/routes')
 def list_routes():
