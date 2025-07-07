@@ -349,3 +349,4 @@ La implementación cumple con los requerimientos académicos del curso de Bases 
 - Interfaz de usuario moderna y responsive
 - Validaciones de integridad de datos
 - Seguridad básica implementada
+
