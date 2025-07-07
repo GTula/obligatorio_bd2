@@ -80,16 +80,17 @@ function Votantes() {
   }
   
   setMesaData(mesaDataParsed);
-  cargarVotantes(mesaDataParsed.idCircuito, mesaDataParsed.idEleccion);
+  cargarVotantes(mesaDataParsed.idEleccion);
 }, [mesaAbierta, navigate]);
 
 
-  const cargarVotantes = async (idCircuito, idEleccion) => {
+  const cargarVotantes = async (idEleccion) => {
     try {
       setLoading(true);
       setError(null);
       
-      const data = await VotantesService.getVotantesHabilitados(idCircuito, idEleccion);
+      // Cambio aquí: obtener todos los votantes de la elección
+      const data = await VotantesService.getTodosLosVotantes(idEleccion);
       setVotantes(data.votantes);
       setEstadisticas(data.estadisticas);
     } catch (err) {
@@ -127,9 +128,6 @@ function Votantes() {
     window.open(urlTotem, '_blank', `width=1200,height=800,scrollbars=yes,resizable=yes,title=${windowTitle}`);
   };
 
-  
-
-
   const buscarVotante = async () => {
     if (!busqueda.serie || !busqueda.numero) {
       alert('Ingrese serie y número de credencial');
@@ -138,17 +136,16 @@ function Votantes() {
 
     try {
       setBuscando(true);
-      const votante = await VotantesService.buscarVotante(
+      const votante = await VotantesService.buscarVotanteGlobal(
         busqueda.serie,
         busqueda.numero,
-        mesaData.idCircuito,
         mesaData.idEleccion
       );
       
       if (votante) {
         setVotanteEncontrado(votante);
       } else {
-        alert('Votante no encontrado o no habilitado para este circuito');
+        alert('Votante no encontrado');
         setVotanteEncontrado(null);
       }
     } catch (err) {
@@ -159,14 +156,18 @@ function Votantes() {
     }
   };
 
-  const marcarComoVotado = async (votante, observado = false) => {
+  const marcarComoVotado = async (votante) => {
     if (votante.ya_voto) {
       alert('Este votante ya fue marcado como votado');
       return;
     }
 
+    // Determinar automáticamente si es observado
+    const esObservado = votante.id_circuito_asignado !== mesaData.idCircuito;
+    const tipoVoto = esObservado ? 'OBSERVADO' : 'NORMAL';
+
     const confirmar = window.confirm(
-      `¿Confirma marcar como votado a:\n${votante.nombre} ${votante.apellido}\nCI: ${votante.ci_ciudadano}?`
+      `¿Confirma marcar como votado a:\n${votante.nombre} ${votante.apellido}\nCI: ${votante.ci_ciudadano}\n\nTipo de voto: ${tipoVoto}\n(Circuito asignado: ${votante.id_circuito_asignado}, Mesa actual: ${mesaData.idCircuito})`
     );
 
     if (!confirmar) return;
@@ -175,15 +176,15 @@ function Votantes() {
       await VotantesService.marcarComoVotado(
         votante.serie_credencial,
         votante.numero_credencial,
-        mesaData.idCircuito,
+        mesaData.idCircuito, // Circuito donde vota (mesa actual)
         mesaData.idEleccion,
-        observado
+        esObservado
       );
 
-      alert('Votante marcado como votado exitosamente');
+      alert(`Votante marcado como votado exitosamente (${tipoVoto})`);
       
       // Recargar lista
-      await cargarVotantes(mesaData.idCircuito, mesaData.idEleccion);
+      await cargarVotantes(mesaData.idEleccion);
       
       // Limpiar búsqueda
       setVotanteEncontrado(null);
@@ -217,7 +218,7 @@ function Votantes() {
       alert('Voto desmarcado exitosamente');
       
       // Recargar lista
-      await cargarVotantes(mesaData.idCircuito, mesaData.idEleccion);
+      await cargarVotantes(mesaData.idEleccion);
       
     } catch (err) {
       alert(`Error: ${err.message}`);
@@ -228,6 +229,8 @@ function Votantes() {
     // Filtro por estado
     if (filtro === 'votaron' && !votante.ya_voto) return false;
     if (filtro === 'pendientes' && votante.ya_voto) return false;
+    if (filtro === 'observados' && (!votante.ya_voto || !votante.observado)) return false;
+    if (filtro === 'normales' && (!votante.ya_voto || votante.observado)) return false;
     
     // Filtro por texto
     if (busquedaTexto) {
@@ -275,6 +278,7 @@ function Votantes() {
         
         <div className="header-center">
           <h2>Lista de Votantes - Mesa {mesaData.numMesa}</h2>
+          <small>Circuito {mesaData.idCircuito}</small>
         </div>
         
         <div className="header-right">
@@ -302,12 +306,20 @@ function Votantes() {
       {/* Estadísticas */}
       <div className="estadisticas">
         <div className="stat-card">
-          <h3>Habilitados</h3>
-          <p className="stat-number">{estadisticas.total_habilitados || 0}</p>
+          <h3>Total Votantes</h3>
+          <p className="stat-number">{estadisticas.total_votantes || 0}</p>
         </div>
         <div className="stat-card">
           <h3>Votaron</h3>
           <p className="stat-number votaron">{estadisticas.total_votaron || 0}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Normales</h3>
+          <p className="stat-number normales">{estadisticas.votos_normales || 0}</p>
+        </div>
+        <div className="stat-card">
+          <h3>Observados</h3>
+          <p className="stat-number observados">{estadisticas.votos_observados || 0}</p>
         </div>
         <div className="stat-card">
           <h3>Pendientes</h3>
@@ -327,7 +339,7 @@ function Votantes() {
             maxLength="5"
           />
           <input
-            type="text"
+                        type="text"
             placeholder="Número (ej: 1001)"
             value={busqueda.numero}
             onChange={(e) => setBusqueda({...busqueda, numero: e.target.value})}
@@ -350,28 +362,28 @@ function Votantes() {
               <p><strong>Nombre:</strong> {votanteEncontrado.nombre} {votanteEncontrado.apellido}</p>
               <p><strong>CI:</strong> {votanteEncontrado.ci_ciudadano}</p>
               <p><strong>Credencial:</strong> {votanteEncontrado.serie_credencial}-{votanteEncontrado.numero_credencial}</p>
+              <p><strong>Circuito Asignado:</strong> {votanteEncontrado.id_circuito_asignado}</p>
+              <p><strong>Mesa Actual:</strong> {mesaData.idCircuito}</p>
+              <p><strong>Tipo de Voto:</strong> 
+                <span className={votanteEncontrado.id_circuito_asignado === mesaData.idCircuito ? 'voto-normal' : 'voto-observado'}>
+                  {votanteEncontrado.id_circuito_asignado === mesaData.idCircuito ? 'NORMAL' : 'OBSERVADO'}
+                </span>
+              </p>
               <p><strong>Estado:</strong> 
                 <span className={votanteEncontrado.ya_voto ? 'ya-voto' : 'pendiente'}>
                   {votanteEncontrado.ya_voto ? 'Ya votó' : 'Pendiente'}
+                  {votanteEncontrado.observado && ' (Observado)'}
                 </span>
               </p>
             </div>
             <div className="votante-acciones">
               {!votanteEncontrado.ya_voto ? (
-                <>
-                  <button 
-                    onClick={() => marcarComoVotado(votanteEncontrado, false)}
-                    className="btn marcar-normal"
-                  >
-                    Marcar como Votado
-                  </button>
-                  <button 
-                    onClick={() => marcarComoVotado(votanteEncontrado, true)}
-                    className="btn marcar-observado"
-                  >
-                    Marcar como Observado
-                  </button>
-                </>
+                <button 
+                  onClick={() => marcarComoVotado(votanteEncontrado)}
+                  className="btn marcar-votado"
+                >
+                  Marcar como Votado
+                </button>
               ) : (
                 <button 
                   onClick={() => desmarcarVotado(votanteEncontrado)}
@@ -406,6 +418,18 @@ function Votantes() {
           >
             Votaron
           </button>
+          <button 
+            className={filtro === 'normales' ? 'active' : ''}
+            onClick={() => setFiltro('normales')}
+          >
+            Votos Normales
+          </button>
+          <button 
+            className={filtro === 'observados' ? 'active' : ''}
+            onClick={() => setFiltro('observados')}
+          >
+            Votos Observados
+          </button>
         </div>
         <input
           type="text"
@@ -424,35 +448,35 @@ function Votantes() {
         
         <div className="votantes-grid">
           {votantesFiltrados.map((votante, index) => (
-            <div key={index} className={`votante-card ${votante.ya_voto ? 'votado' : 'pendiente'}`}>
-                            <div className="votante-header">
+            <div key={index} className={`votante-card ${votante.ya_voto ? 'votado' : 'pendiente'} ${votante.id_circuito_asignado !== mesaData.idCircuito ? 'observado' : 'normal'}`}>
+              <div className="votante-header">
                 <h4>{votante.nombre} {votante.apellido}</h4>
-                <span className={`estado ${votante.ya_voto ? 'votado' : 'pendiente'}`}>
-                  {votante.ya_voto ? '✓ Votó' : '○ Pendiente'}
-                  {votante.observado && ' (Obs.)'}
-                </span>
+                <div className="estado-container">
+                  <span className={`estado ${votante.ya_voto ? 'votado' : 'pendiente'}`}>
+                    {votante.ya_voto ? '✓ Votó' : '○ Pendiente'}
+                    {votante.observado && ' (Obs.)'}
+                  </span>
+                  <span className={`tipo-voto ${votante.id_circuito_asignado === mesaData.idCircuito ? 'normal' : 'observado'}`}>
+                    {votante.id_circuito_asignado === mesaData.idCircuito ? 'NORMAL' : 'OBSERVADO'}
+                  </span>
+                </div>
               </div>
               <div className="votante-details">
                 <p><strong>CI:</strong> {votante.ci_ciudadano}</p>
                 <p><strong>Credencial:</strong> {votante.serie_credencial}-{votante.numero_credencial}</p>
                 <p><strong>Fecha Nac:</strong> {new Date(votante.fecha_nac).toLocaleDateString()}</p>
+                <p><strong>Circuito Asignado:</strong> {votante.id_circuito_asignado}</p>
+                <p><strong>Mesa Actual:</strong> {mesaData.idCircuito}</p>
               </div>
               <div className="votante-acciones">
                 {!votante.ya_voto ? (
-                  <>
-                    <button 
-                      onClick={() => marcarComoVotado(votante, false)}
-                      className="btn-small marcar"
-                    >
-                      Marcar Voto
-                    </button>
-                    <button 
-                      onClick={() => marcarComoVotado(votante, true)}
-                      className="btn-small observado"
-                    >
-                      Observado
-                    </button>
-                  </>
+                  <button 
+                    onClick={() => marcarComoVotado(votante)}
+                    className={`btn-small marcar ${votante.id_circuito_asignado === mesaData.idCircuito ? 'normal' : 'observado'}`}
+                  >
+                    Marcar como Votado
+                    <small>({votante.id_circuito_asignado === mesaData.idCircuito ? 'Normal' : 'Observado'})</small>
+                  </button>
                 ) : (
                   <button 
                     onClick={() => desmarcarVotado(votante)}
